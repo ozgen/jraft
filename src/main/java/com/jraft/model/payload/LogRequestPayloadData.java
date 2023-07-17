@@ -11,15 +11,7 @@ public class LogRequestPayloadData implements LogRequestPayload {
     private int prefixTerm;
     private int leaderCommit;
     private List<LogEntry> suffix;
-
     private int leaderId;
-
-    public LogRequestPayloadData(int prefixLength, int prefixTerm, int leaderCommit, List<LogEntry> suffix) {
-        this.prefixLength = prefixLength;
-        this.prefixTerm = prefixTerm;
-        this.leaderCommit = leaderCommit;
-        this.suffix = suffix;
-    }
 
     public LogRequestPayloadData(int prefixLength, int prefixTerm, int leaderCommit, List<LogEntry> suffix, int leaderId) {
         this.prefixLength = prefixLength;

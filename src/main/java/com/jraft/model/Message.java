@@ -25,10 +25,10 @@ public class Message {
     }
 
     // Log Request Message Constructor
-    public Message( int sender, int term, int prefixLength, int prefixTerm, int leaderCommit, List<LogEntry> suffix) {
+    public Message( int sender, int term, int prefixLength, int prefixTerm, int leaderCommit, List<LogEntry> suffix, int leaderId) {
         this.sender = sender;
         this.term = term;
-        this.payload = (Payload) new LogRequestPayloadData(prefixLength, prefixTerm, leaderCommit, suffix);
+        this.payload = (Payload) new LogRequestPayloadData(prefixLength, prefixTerm, leaderCommit, suffix, leaderId);
         // Include the suffix field specific to the log request message
         // Set the suffix field to the given suffix object
     }
