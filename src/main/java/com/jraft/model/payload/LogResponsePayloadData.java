@@ -4,11 +4,11 @@ public class LogResponsePayloadData implements LogResponsePayload {
 
     private int ack;
 
-    private boolean success;
+    private boolean granted;
 
-    public LogResponsePayloadData(int ack, boolean success) {
+    public LogResponsePayloadData(int ack, boolean granted) {
         this.ack = ack;
-        this.success = success;
+        this.granted = granted;
     }
 
     @Override
@@ -17,7 +17,7 @@ public class LogResponsePayloadData implements LogResponsePayload {
     }
 
     @Override
-    public boolean isSuccess() {
-        return success;
+    public boolean isGranted() {
+        return granted;
     }
 }

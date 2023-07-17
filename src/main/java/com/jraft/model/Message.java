@@ -34,10 +34,10 @@ public class Message {
     }
 
     // Log Response Message Constructor
-    Message( int sender, int term, int ack, boolean success) {
+    Message( int sender, int term, int ack, boolean granted) {
         this.sender = sender;
         this.term = term;
-        this.payload = (Payload) new LogResponsePayloadData(ack, success);
+        this.payload = (Payload) new LogResponsePayloadData(ack, granted);
     }
 
 

@@ -3,11 +3,11 @@ package com.jraft.model.payload;
 public class VoteRequestPayloadData implements VoteRequestPayload {
 
     private int logLength;
-    private int logTerm;
+    private int lastTerm;
 
-    public VoteRequestPayloadData(int logLength, int logTerm) {
+    public VoteRequestPayloadData(int logLength, int lastTerm) {
         this.logLength = logLength;
-        this.logTerm = logTerm;
+        this.lastTerm = lastTerm;
     }
 
     @Override
@@ -16,7 +16,8 @@ public class VoteRequestPayloadData implements VoteRequestPayload {
     }
 
     @Override
-    public int getLogTerm() {
-        return logTerm;
+    public int getLastTerm() {
+        return lastTerm;
     }
 }
+
