@@ -1,6 +1,5 @@
 package com.ozgen.jraft.model;
 
-import com.jraft.model.payload.*;
 import com.ozgen.jraft.model.payload.LogRequestPayloadData;
 import com.ozgen.jraft.model.payload.LogResponsePayloadData;
 import com.ozgen.jraft.model.payload.Payload;
