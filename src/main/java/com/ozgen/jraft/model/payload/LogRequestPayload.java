@@ -1,6 +1,6 @@
-package com.jraft.model.payload;
+package com.ozgen.jraft.model.payload;
 
-import com.jraft.model.LogEntry;
+import com.ozgen.jraft.model.LogEntry;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ public interface LogRequestPayload {
      *
      * @return The leader commit value.
      */
-    public int getLeaderId();
+    public String getLeaderId();
     /**
      * Gets the list of log entries that need to be replicated from the leader to the follower.
      *

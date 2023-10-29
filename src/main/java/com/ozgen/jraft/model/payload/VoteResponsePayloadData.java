@@ -1,9 +1,12 @@
-package com.jraft.model.payload;
+package com.ozgen.jraft.model.payload;
+
+import lombok.Builder;
 
 public class VoteResponsePayloadData implements VoteResponsePayload {
 
     private boolean granted;
 
+    @Builder
     public VoteResponsePayloadData(boolean granted) {
         this.granted = granted;
     }
