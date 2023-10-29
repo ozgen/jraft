@@ -1,8 +1,10 @@
-package com.jraft.model.payload;
+package com.ozgen.jraft.model.payload;
 
-import com.jraft.model.LogEntry;
+import com.ozgen.jraft.model.LogEntry;
+import lombok.Builder;
 
 import java.util.List;
+import java.util.Objects;
 
 public class LogRequestPayloadData implements LogRequestPayload {
 
@@ -13,12 +15,16 @@ public class LogRequestPayloadData implements LogRequestPayload {
     private List<LogEntry> suffix;
     private int leaderId;
 
+    @Builder
     public LogRequestPayloadData(int prefixLength, int prefixTerm, int leaderCommit, List<LogEntry> suffix, int leaderId) {
-        this.prefixLength = prefixLength;
-        this.prefixTerm = prefixTerm;
-        this.leaderCommit = leaderCommit;
+        this.prefixLength = Objects.requireNonNull(prefixLength);
+        this.prefixTerm = Objects.requireNonNull(prefixTerm);
+        this.leaderCommit = Objects.requireNonNull(leaderCommit);
+        if (suffix == null || suffix.isEmpty()) {
+            throw new IllegalArgumentException("suffix must not be null or empty");
+        }
         this.suffix = suffix;
-        this.leaderId = leaderId;
+        this.leaderId = Objects.requireNonNull(leaderId);
     }
 
     @Override

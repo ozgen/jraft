@@ -1,6 +1,6 @@
-package com.jraft.model.payload;
+package com.ozgen.jraft.model.payload;
 
-import com.jraft.model.LogEntry;
+import com.ozgen.jraft.model.LogEntry;
 
 import java.util.List;
 
