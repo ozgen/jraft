@@ -7,10 +7,12 @@ import com.ozgen.jraft.model.payload.VoteRequestPayloadData;
 import com.ozgen.jraft.model.payload.VoteResponsePayloadData;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 @Getter
+@Slf4j
 public class Message {
 
     private int sender;
@@ -40,7 +42,7 @@ public class Message {
 
     // Log Request Message Constructor
     @Builder(builderMethodName = "buildWithLogRequestPayload")
-    public Message(int sender, int term, int prefixLength, int prefixTerm, int leaderCommit, List<LogEntry> suffix, int leaderId) {
+    public Message(int sender, int term, int prefixLength, int prefixTerm, int leaderCommit, List<LogEntry> suffix, String leaderId) {
         this.sender = sender;
         this.term = term;
         this.payload = (Payload) LogRequestPayloadData.builder()

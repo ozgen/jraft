@@ -30,7 +30,7 @@ public interface LogRequestPayload {
      *
      * @return The leader commit value.
      */
-    public int getLeaderId();
+    public String getLeaderId();
     /**
      * Gets the list of log entries that need to be replicated from the leader to the follower.
      *
