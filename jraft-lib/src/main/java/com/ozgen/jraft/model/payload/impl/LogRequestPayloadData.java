@@ -1,6 +1,7 @@
-package com.ozgen.jraft.model.payload;
+package com.ozgen.jraft.model.payload.impl;
 
 import com.ozgen.jraft.model.LogEntry;
+import com.ozgen.jraft.model.payload.LogRequestPayload;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
