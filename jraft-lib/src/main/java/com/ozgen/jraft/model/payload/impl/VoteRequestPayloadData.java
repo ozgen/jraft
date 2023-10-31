@@ -1,5 +1,6 @@
-package com.ozgen.jraft.model.payload;
+package com.ozgen.jraft.model.payload.impl;
 
+import com.ozgen.jraft.model.payload.VoteRequestPayload;
 import lombok.Builder;
 
 public class VoteRequestPayloadData implements VoteRequestPayload {

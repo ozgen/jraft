@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package com.jraft;
+
+// Message definitions
+
+message LogEntry {
+  int32 term = 1;
+  MessageWrapper message = 2;
+}
+
+message VoteRequest {
+  int32 logLength = 1;
+  int32 lastTerm = 2;
+}
+
+message VoteResponse {
+  bool granted = 1;
+}
+
+message LogRequest {
+  int32 prefixLength = 1;
+  int32 prefixTerm = 2;
+  int32 leaderCommit = 3;
+  repeated LogEntry suffix = 4;
+  string leaderId = 5;
+}
+
+message LogResponse {
+  int32 ack = 1;
+  bool granted = 2;
+}
+
+message MessageWrapper {
+  int32 sender = 1;
+  int32 term = 2;
+  oneof payload {
+    VoteRequest voteRequest = 3;
+    VoteResponse voteResponse = 4;
+    LogRequest logRequest = 5;
+    LogResponse logResponse = 6;
+  }
+}
+
+// Service definition
+service MessageHandlerService {
+  rpc handleVoteRequest(MessageWrapper) returns (MessageWrapper);
+  rpc handleVoteResponse(MessageWrapper) returns (MessageWrapper);
+  rpc handleLogRequest(MessageWrapper) returns (MessageWrapper);
+  rpc handleLogResponse(MessageWrapper) returns (MessageWrapper);
+}
+
+
