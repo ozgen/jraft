@@ -1,5 +1,6 @@
 package com.ozgen.jraft.model.converter;
 
+import com.google.protobuf.Timestamp;
 import com.jraft.Message;
 import com.ozgen.jraft.model.LogEntry;
 import com.ozgen.jraft.model.payload.VoteRequestPayload;
@@ -8,6 +9,7 @@ import com.ozgen.jraft.model.payload.impl.LogResponsePayloadData;
 import com.ozgen.jraft.model.payload.impl.VoteRequestPayloadData;
 import com.ozgen.jraft.model.payload.impl.VoteResponsePayloadData;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,12 +19,14 @@ public class GrpcToMsgConverter {
     public com.ozgen.jraft.model.Message convert(Message.MessageWrapper grpcMessageWrapper) {
         int sender = grpcMessageWrapper.getSender();
         int term = grpcMessageWrapper.getTerm();
+        Instant createdAt = this.timestampToInstant(grpcMessageWrapper.getCreatedAt());
 
         if (grpcMessageWrapper.hasVoteRequest()) {
             VoteRequestPayload voteRequestPayload = this.convertVoteRequest(grpcMessageWrapper.getVoteRequest());
             return com.ozgen.jraft.model.Message.buildWithVoteForRequestPayload()
                     .sender(sender)
                     .term(term)
+                    .createdAt(createdAt)
                     .voteRequestPayload(voteRequestPayload)
                     .build();
         } else if (grpcMessageWrapper.hasVoteResponse()) {
@@ -30,6 +34,7 @@ public class GrpcToMsgConverter {
             return com.ozgen.jraft.model.Message.buildWithVoteResponsePayload()
                     .sender(sender)
                     .term(term)
+                    .createdAt(createdAt)
                     .voteResponsePayload(VoteResponsePayloadData.builder()
                             .granted(voteResponse.getGranted())
                             .build())
@@ -39,6 +44,7 @@ public class GrpcToMsgConverter {
             return com.ozgen.jraft.model.Message.buildWithLogRequestPayload()
                     .term(term)
                     .sender(sender)
+                    .createdAt(createdAt)
                     .logRequestPayload(logRequestPayloadData)
                     .build();
         } else if (grpcMessageWrapper.hasLogResponse()) {
@@ -46,6 +52,7 @@ public class GrpcToMsgConverter {
             return com.ozgen.jraft.model.Message.buildWithLogResponsePayload()
                     .term(term)
                     .sender(sender)
+                    .createdAt(createdAt)
                     .logResponsePayload(LogResponsePayloadData.builder()
                             .ack(logResponse.getAck())
                             .granted(logResponse.getGranted())
@@ -54,6 +61,10 @@ public class GrpcToMsgConverter {
         } else {
             throw new IllegalArgumentException("Unsupported payload type in MessageWrapper");
         }
+    }
+
+    public Instant timestampToInstant(final Timestamp timestamp) {
+        return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
     }
 
     private VoteRequestPayload convertVoteRequest(Message.VoteRequest voteRequest) {

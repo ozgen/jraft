@@ -32,17 +32,7 @@ public class MessageHandlerServiceImpl implements MessageHandlerService {
     }
 
     @Override
-    public Message handleVoteResponse(Message message) {
-        return null;
-    }
-
-    @Override
     public Message handleLogRequest(Message message) {
-        return null;
-    }
-
-    @Override
-    public Message handleLogResponse(Message message) {
         return null;
     }
 }

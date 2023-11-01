@@ -1,5 +1,6 @@
 package com.ozgen.jraft.model.converter;
 
+import com.google.protobuf.Timestamp;
 import com.jraft.Message;
 import com.ozgen.jraft.model.LogEntry;
 import com.ozgen.jraft.model.payload.LogRequestPayload;
@@ -8,6 +9,7 @@ import com.ozgen.jraft.model.payload.VoteRequestPayload;
 import com.ozgen.jraft.model.payload.VoteResponsePayload;
 import com.ozgen.jraft.model.payload.impl.LogRequestPayloadData;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +21,7 @@ public class MsgToGrpcConverter {
 
         grpcMessageWrapperBuilder.setSender(customMessage.getSender());
         grpcMessageWrapperBuilder.setTerm(customMessage.getTerm());
+        grpcMessageWrapperBuilder.setCreatedAt(this.instantToTimestamp(customMessage.getCreatedAt()));
 
         Object payload = customMessage.getPayload();
 
@@ -37,6 +40,10 @@ public class MsgToGrpcConverter {
         }
 
         return grpcMessageWrapperBuilder.build();
+    }
+
+    public Timestamp instantToTimestamp(final Instant instant) {
+        return Timestamp.newBuilder().setSeconds(instant.getEpochSecond()).setNanos(instant.getNano()).build();
     }
 
     private Message.VoteRequest convertVoteRequest(VoteRequestPayload voteRequestPayload) {
