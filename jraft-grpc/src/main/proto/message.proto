@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package com.jraft;
 
+//import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
 // Message definitions
 
 message LogEntry {
@@ -40,14 +43,13 @@ message MessageWrapper {
     LogRequest logRequest = 5;
     LogResponse logResponse = 6;
   }
+  google.protobuf.Timestamp created_at=7;
 }
 
 // Service definition
 service MessageHandlerService {
   rpc handleVoteRequest(MessageWrapper) returns (MessageWrapper);
-  rpc handleVoteResponse(MessageWrapper) returns (MessageWrapper);
   rpc handleLogRequest(MessageWrapper) returns (MessageWrapper);
-  rpc handleLogResponse(MessageWrapper) returns (MessageWrapper);
 }
 
 

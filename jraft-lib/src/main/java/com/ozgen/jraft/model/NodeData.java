@@ -25,6 +25,8 @@ public class NodeData {
     private int votesReceived;
     private int sentLength;
     private int ackedLength;
+    private String address;
+    private String port;
 
 
     @Builder
