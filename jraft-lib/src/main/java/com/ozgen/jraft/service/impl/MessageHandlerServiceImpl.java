@@ -6,11 +6,16 @@ import com.ozgen.jraft.model.Message;
 import com.ozgen.jraft.model.converter.GrpcToMsgConverter;
 import com.ozgen.jraft.model.converter.MsgToGrpcConverter;
 import com.ozgen.jraft.service.MessageHandlerService;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
+import java.util.concurrent.CompletableFuture;
+
 @Singleton
 public class MessageHandlerServiceImpl implements MessageHandlerService {
+
+    private static final Logger logger =  LoggerFactory.getLogger(MessageHandlerService.class);
+
 
     private final MessageHandlerServiceGrpc.MessageHandlerServiceImplBase stub;
 
@@ -27,12 +32,12 @@ public class MessageHandlerServiceImpl implements MessageHandlerService {
     //todo after implementing the jraft-service update this class
     // and return null
     @Override
-    public Message handleVoteRequest(Message message) {
+    public CompletableFuture<Message> handleVoteRequest(Message message) {
         return null;
     }
 
     @Override
-    public Message handleLogRequest(Message message) {
+    public CompletableFuture<Message> handleLogRequest(Message message) {
         return null;
     }
 }

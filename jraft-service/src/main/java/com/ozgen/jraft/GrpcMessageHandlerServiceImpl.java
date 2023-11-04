@@ -7,15 +7,12 @@ import com.ozgen.jraft.model.converter.GrpcToMsgConverter;
 import com.ozgen.jraft.model.converter.MsgToGrpcConverter;
 import com.ozgen.jraft.service.MessageHandlerService;
 import io.grpc.stub.StreamObserver;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.UUID;
-import java.util.concurrent.CompletionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
-@Slf4j
 public class GrpcMessageHandlerServiceImpl extends MessageHandlerServiceGrpc.MessageHandlerServiceImplBase {
-
+    private static final Logger log =  LoggerFactory.getLogger(GrpcMessageHandlerServiceImpl.class);
     private final GrpcToMsgConverter grpcToMsgConverter;
     private final MsgToGrpcConverter msgToGrpcConverter;
     private final MessageHandlerService messageHandlerService;
@@ -33,10 +30,17 @@ public class GrpcMessageHandlerServiceImpl extends MessageHandlerServiceGrpc.Mes
     public void handleVoteRequest(Message.MessageWrapper request, StreamObserver<Message.MessageWrapper> responseObserver) {
         try {
             com.ozgen.jraft.model.Message message = this.grpcToMsgConverter.convert(request);
-            com.ozgen.jraft.model.Message result = this.messageHandlerService.handleVoteRequest(message);
-            Message.MessageWrapper convertedResult = this.msgToGrpcConverter.convert(result);
-            responseObserver.onNext(convertedResult);
-            responseObserver.onCompleted();
+            this.messageHandlerService.handleVoteRequest(message).whenComplete((result, t) -> {
+
+                if (t != null) {
+                    log.warn("Exception in handleVoteRequest()", t);
+                    responseObserver.onError(t);
+                }
+
+                Message.MessageWrapper convertedResult = this.msgToGrpcConverter.convert(result);
+                responseObserver.onNext(convertedResult);
+                responseObserver.onCompleted();
+            });
         } catch (final Exception e) {
             log.error("Exception in handleVoteRequest()", e);
             responseObserver.onError(e);
@@ -47,10 +51,17 @@ public class GrpcMessageHandlerServiceImpl extends MessageHandlerServiceGrpc.Mes
     public void handleLogRequest(Message.MessageWrapper request, StreamObserver<Message.MessageWrapper> responseObserver) {
         try {
             com.ozgen.jraft.model.Message message = this.grpcToMsgConverter.convert(request);
-            com.ozgen.jraft.model.Message result = this.messageHandlerService.handleLogRequest(message);
-            Message.MessageWrapper convertedResult = this.msgToGrpcConverter.convert(result);
-            responseObserver.onNext(convertedResult);
-            responseObserver.onCompleted();
+            this.messageHandlerService.handleLogRequest(message).whenComplete((result, t) -> {
+
+                if (t != null) {
+                    log.warn("Exception in handleLogRequest()", t);
+                    responseObserver.onError(t);
+                }
+
+                Message.MessageWrapper convertedResult = this.msgToGrpcConverter.convert(result);
+                responseObserver.onNext(convertedResult);
+                responseObserver.onCompleted();
+            });
         } catch (final Exception e) {
             log.error("Exception in handleLogRequest()", e);
             responseObserver.onError(e);

@@ -2,6 +2,8 @@ package com.ozgen.jraft.service;
 
 import com.ozgen.jraft.model.Message;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface MessageHandlerService {
 
   /**
@@ -10,7 +12,7 @@ public interface MessageHandlerService {
    * @param message The vote request message to be processed.
    * @return The resulting message after processing the vote request.
    */
-  Message handleVoteRequest(Message message);
+  CompletableFuture<Message> handleVoteRequest(Message message);
 
   /**
    * Handles an incoming log request message.
@@ -18,6 +20,6 @@ public interface MessageHandlerService {
    * @param message The log request message to be processed.
    * @return The resulting message after processing the log request.
    */
-  Message handleLogRequest(Message message);
+  CompletableFuture<Message> handleLogRequest(Message message);
 }
 

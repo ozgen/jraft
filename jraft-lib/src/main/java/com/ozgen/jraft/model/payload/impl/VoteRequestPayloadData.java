@@ -1,15 +1,14 @@
 package com.ozgen.jraft.model.payload.impl;
 
+import com.ozgen.jraft.model.Term;
 import com.ozgen.jraft.model.payload.VoteRequestPayload;
-import lombok.Builder;
 
 public class VoteRequestPayloadData implements VoteRequestPayload {
 
     private int logLength;
-    private int lastTerm;
+    private Term lastTerm;
 
-    @Builder
-    public VoteRequestPayloadData(int logLength, int lastTerm) {
+    public VoteRequestPayloadData(int logLength, Term lastTerm) {
         this.logLength = logLength;
         this.lastTerm = lastTerm;
     }
@@ -20,7 +19,7 @@ public class VoteRequestPayloadData implements VoteRequestPayload {
     }
 
     @Override
-    public int getLastTerm() {
+    public Term getLastTerm() {
         return lastTerm;
     }
 }

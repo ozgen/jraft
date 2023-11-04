@@ -1,8 +1,9 @@
 package com.ozgen.jraft.model.payload;
 
 import com.ozgen.jraft.model.LogEntry;
+import com.ozgen.jraft.model.Term;
 
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public interface LogRequestPayload {
     /**
@@ -17,7 +18,7 @@ public interface LogRequestPayload {
      *
      * @return The prefix term.
      */
-    public int getPrefixTerm();
+    public Term getPrefixTerm();
 
     /**
      * Gets the leader commit value indicating the index of the highest log entry known to be committed by the leader.
@@ -36,5 +37,5 @@ public interface LogRequestPayload {
      *
      * @return The list of log entries. {@link LogEntry}
      */
-    public List<LogEntry> getSuffixList();
+    public CopyOnWriteArrayList<LogEntry> getSuffixList();
 }
