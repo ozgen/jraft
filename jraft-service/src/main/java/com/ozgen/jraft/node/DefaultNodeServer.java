@@ -2,9 +2,7 @@ package com.ozgen.jraft.node;
 
 import com.jraft.Message;
 import com.jraft.MessageHandlerServiceGrpc;
-import com.ozgen.jraft.GrpcMessageHandlerServiceImpl;
 import com.ozgen.jraft.model.NodeData;
-import com.ozgen.jraft.model.converter.GrpcToMsgConverter;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -18,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 public class DefaultNodeServer {
 
     private ConcurrentHashMap<String, NodeData> nodes = new ConcurrentHashMap<>();
-    private GrpcToMsgConverter grpcToMsgConverter = new GrpcToMsgConverter();
 
     private ConcurrentHashMap<String, ManagedChannel> channelPool = new ConcurrentHashMap<>();
 
