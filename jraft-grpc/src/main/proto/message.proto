@@ -3,18 +3,22 @@ syntax = "proto3";
 package com.jraft;
 
 //import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
+//import "google/protobuf/timestamp.proto";
 
 // Message definitions
 
-message LogEntry {
+message Term {
   int32 term = 1;
-  MessageWrapper message = 2;
+}
+
+message LogEntry {
+  Term term = 1;
+  MessageContent message = 2;
 }
 
 message VoteRequest {
   int32 logLength = 1;
-  int32 lastTerm = 2;
+  Term lastTerm = 2;
 }
 
 message VoteResponse {
@@ -23,7 +27,7 @@ message VoteResponse {
 
 message LogRequest {
   int32 prefixLength = 1;
-  int32 prefixTerm = 2;
+  Term prefixTerm = 2;
   int32 leaderCommit = 3;
   repeated LogEntry suffix = 4;
   string leaderId = 5;
@@ -35,15 +39,25 @@ message LogResponse {
 }
 
 message MessageWrapper {
-  int32 sender = 1;
-  int32 term = 2;
+  string sender = 1;
+  Term term = 2;
   oneof payload {
     VoteRequest voteRequest = 3;
     VoteResponse voteResponse = 4;
     LogRequest logRequest = 5;
     LogResponse logResponse = 6;
   }
-  google.protobuf.Timestamp created_at=7;
+}
+
+message MessageContent {
+  string sender = 1;
+  Term term = 2;
+  oneof payload {
+    VoteRequest voteRequest = 3;
+    VoteResponse voteResponse = 4;
+    LogRequest logRequest = 5;
+    LogResponse logResponse = 6;
+  }
 }
 
 // Service definition

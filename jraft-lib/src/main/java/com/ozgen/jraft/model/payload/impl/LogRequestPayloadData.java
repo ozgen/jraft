@@ -1,30 +1,27 @@
 package com.ozgen.jraft.model.payload.impl;
 
 import com.ozgen.jraft.model.LogEntry;
+import com.ozgen.jraft.model.Term;
 import com.ozgen.jraft.model.payload.LogRequestPayload;
-import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-@Slf4j
 public class LogRequestPayloadData implements LogRequestPayload {
 
 
     private int prefixLength;
-    private int prefixTerm;
+    private Term prefixTerm;
     private int leaderCommit;
-    private List<LogEntry> suffix;
+    private CopyOnWriteArrayList<LogEntry> suffix;
     private String leaderId;
 
-    @Builder
-    public LogRequestPayloadData(int prefixLength, int prefixTerm, int leaderCommit, List<LogEntry> suffix, String leaderId) {
+    public LogRequestPayloadData(int prefixLength, Term prefixTerm, int leaderCommit, CopyOnWriteArrayList<LogEntry> suffix, String leaderId) {
         this.prefixLength = prefixLength;
         this.prefixTerm = prefixTerm;
         this.leaderCommit = leaderCommit;
         if (suffix == null || suffix.isEmpty()) {
-            throw new IllegalArgumentException("suffix must not be null or empty");
+            suffix = new CopyOnWriteArrayList<>();
         }
         this.suffix = suffix;
         this.leaderId = Objects.requireNonNull(leaderId);
@@ -36,7 +33,7 @@ public class LogRequestPayloadData implements LogRequestPayload {
     }
 
     @Override
-    public int getPrefixTerm() {
+    public Term getPrefixTerm() {
         return prefixTerm;
     }
 
@@ -51,7 +48,7 @@ public class LogRequestPayloadData implements LogRequestPayload {
     }
 
     @Override
-    public List<LogEntry> getSuffixList() {
+    public CopyOnWriteArrayList<LogEntry> getSuffixList() {
         return suffix;
     }
 }

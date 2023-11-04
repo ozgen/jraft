@@ -1,7 +1,6 @@
 package com.ozgen.jraft.model.payload.impl;
 
 import com.ozgen.jraft.model.payload.LogResponsePayload;
-import lombok.Builder;
 
 public class LogResponsePayloadData implements LogResponsePayload {
 
@@ -9,7 +8,6 @@ public class LogResponsePayloadData implements LogResponsePayload {
 
     private boolean granted;
 
-    @Builder
     public LogResponsePayloadData(int ack, boolean granted) {
         this.ack = ack;
         this.granted = granted;

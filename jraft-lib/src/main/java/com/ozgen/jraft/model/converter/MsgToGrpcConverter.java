@@ -20,8 +20,9 @@ public class MsgToGrpcConverter {
         Message.MessageWrapper.Builder grpcMessageWrapperBuilder = Message.MessageWrapper.newBuilder();
 
         grpcMessageWrapperBuilder.setSender(customMessage.getSender());
-        grpcMessageWrapperBuilder.setTerm(customMessage.getTerm());
-        grpcMessageWrapperBuilder.setCreatedAt(this.instantToTimestamp(customMessage.getCreatedAt()));
+        grpcMessageWrapperBuilder.setTerm(Message.Term.newBuilder()
+                .setTerm(customMessage.getTerm().getNumber())
+                .build());
 
         Object payload = customMessage.getPayload();
 
@@ -48,7 +49,9 @@ public class MsgToGrpcConverter {
 
     private Message.VoteRequest convertVoteRequest(VoteRequestPayload voteRequestPayload) {
         return Message.VoteRequest.newBuilder()
-                .setLastTerm(voteRequestPayload.getLastTerm())
+                .setLastTerm(Message.Term.newBuilder()
+                        .setTerm(voteRequestPayload.getLastTerm().getNumber())
+                        .build())
                 .setLogLength(voteRequestPayload.getLogLength())
                 .build();
     }
@@ -66,7 +69,9 @@ public class MsgToGrpcConverter {
 
         return Message.LogRequest.newBuilder()
                 .setPrefixLength(logRequestPayloadData.getPrefixLength())
-                .setPrefixTerm(logRequestPayloadData.getPrefixTerm())
+                .setPrefixTerm(Message.Term.newBuilder()
+                        .setTerm(logRequestPayloadData.getPrefixTerm().getNumber())
+                        .build())
                 .setLeaderCommit(logRequestPayloadData.getLeaderCommit())
                 .setLeaderId(logRequestPayloadData.getLeaderId())
                 .addAllSuffix(grpcLogEntries)
@@ -82,8 +87,37 @@ public class MsgToGrpcConverter {
 
     private Message.LogEntry convertLogEntry(LogEntry logEntry) {
         return Message.LogEntry.newBuilder()
-                .setMessage(convert(logEntry.getMessage()))
-                .setTerm(logEntry.getTerm())
+                .setMessage(convertContent(logEntry.getMessage()))
+                .setTerm(Message.Term.newBuilder()
+                        .setTerm(logEntry.getTerm().getNumber())
+                        .build())
                 .build();
+    }
+
+    private Message.MessageContent convertContent(com.ozgen.jraft.model.Message customMessage) {
+        Message.MessageContent.Builder grpcMessageWrapperBuilder = Message.MessageContent.newBuilder();
+
+        grpcMessageWrapperBuilder.setSender(customMessage.getSender());
+        grpcMessageWrapperBuilder.setTerm(Message.Term.newBuilder()
+                .setTerm(customMessage.getTerm().getNumber())
+                .build());
+
+        Object payload = customMessage.getPayload();
+
+        if (payload instanceof VoteRequestPayload) {
+            grpcMessageWrapperBuilder.setVoteRequest(convertVoteRequest((VoteRequestPayload) payload));
+        } else if (payload instanceof VoteResponsePayload) {
+            VoteResponsePayload voteResponsePayload = (VoteResponsePayload) payload;
+            grpcMessageWrapperBuilder.setVoteResponse(convertVoteResponse(voteResponsePayload.isGranted()));
+        } else if (payload instanceof LogRequestPayload) {
+            grpcMessageWrapperBuilder.setLogRequest(convertLogRequest((LogRequestPayloadData) payload));
+        } else if (payload instanceof LogResponsePayload) {
+            LogResponsePayload logResponsePayload = (LogResponsePayload) payload;
+            grpcMessageWrapperBuilder.setLogResponse(convertLogResponse(logResponsePayload.isGranted(), logResponsePayload.getAck()));
+        } else {
+            throw new IllegalArgumentException("Unsupported payload type in custom Message");
+        }
+
+        return grpcMessageWrapperBuilder.build();
     }
 }

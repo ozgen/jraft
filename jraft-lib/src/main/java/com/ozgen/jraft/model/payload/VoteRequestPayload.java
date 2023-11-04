@@ -1,5 +1,7 @@
 package com.ozgen.jraft.model.payload;
 
+import com.ozgen.jraft.model.Term;
+
 public interface VoteRequestPayload {
     /**
      * Gets the length of the candidate's log.
@@ -13,5 +15,5 @@ public interface VoteRequestPayload {
      *
      * @return The term of the last log entry.
      */
-    public int getLastTerm();
+    public Term getLastTerm();
 }
