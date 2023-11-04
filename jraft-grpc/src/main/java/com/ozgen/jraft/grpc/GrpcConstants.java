@@ -2,6 +2,6 @@ package com.ozgen.jraft.grpc;
 
 public class GrpcConstants {
 
-//    public static final int SERVER_PORT = 21022;
+    public static final int SERVER_PORT = 21022;
 
 }
