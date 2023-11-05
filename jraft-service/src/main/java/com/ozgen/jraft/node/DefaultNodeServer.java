@@ -6,6 +6,8 @@ import com.ozgen.jraft.model.NodeData;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
@@ -15,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultNodeServer {
 
+    private static final Logger log = LoggerFactory.getLogger(DefaultNodeServer.class);
+
     private ConcurrentHashMap<String, NodeData> nodes = new ConcurrentHashMap<>();
 
     private ConcurrentHashMap<String, ManagedChannel> channelPool = new ConcurrentHashMap<>();
@@ -22,14 +26,19 @@ public class DefaultNodeServer {
 
     // Called when a node wants to join the cluster
     public void joinCluster(String newNodeId, NodeData nodeData) {
+        log.info("Request to join the cluster received from node: {}", newNodeId);
         if (!nodes.contains(newNodeId)) {
             nodes.put(newNodeId, nodeData);
+            log.info("Node {} joined the cluster.", newNodeId);
             // Optionally, broadcast this change to all nodes or use Raft itself to replicate this change
+        } else {
+            log.warn("Node {} is already a part of the cluster.", newNodeId);
         }
     }
 
-    // Called when a node wants to leave the cluster
+    // In leaveCluster method
     public void leaveCluster(String nodeId) {
+        log.info("Request to leave the cluster received from node: {}", nodeId);
         this.removeNode(nodeId);
         nodes.remove(nodeId);
         // Optionally, broadcast this change to all nodes or use Raft itself to replicate this change
@@ -53,6 +62,7 @@ public class DefaultNodeServer {
 
                 @Override
                 public void onError(Throwable t) {
+                    log.error("Error while sending vote request to node {}: {}", nodeId, t.getMessage());
                     futureResponse.completeExceptionally(t);
                 }
 
@@ -84,6 +94,7 @@ public class DefaultNodeServer {
 
                 @Override
                 public void onError(Throwable t) {
+                    log.error("Error while sending log request to node {}: {}", nodeId, t.getMessage());
                     futureResponse.completeExceptionally(t);
                 }
 
@@ -101,6 +112,7 @@ public class DefaultNodeServer {
 
     private MessageHandlerServiceGrpc.MessageHandlerServiceStub createClientForNode(NodeData nodeData) {
         String key = nodeData.getIpAddress() + ":" + nodeData.getPort();
+        log.debug("Creating client for node with IP: {} and port: {}", nodeData.getIpAddress(), nodeData.getPort());
         ManagedChannel channel = channelPool.computeIfAbsent(key, k ->
                 ManagedChannelBuilder.forAddress(nodeData.getIpAddress(), nodeData.getPort())
                         .usePlaintext()
@@ -111,10 +123,12 @@ public class DefaultNodeServer {
 
     public void removeNode(String nodeId) {
         NodeData nodeData = nodes.get(nodeId);
+        log.info("Removing node: {}", nodeId);
         if (nodeData != null) {
             String key = nodeData.getIpAddress() + ":" + nodeData.getPort();
             ManagedChannel channel = channelPool.remove(key);
             if (channel != null && !channel.isShutdown()) {
+                log.debug("Initiating graceful shutdown for channel associated with node: {}", nodeId);
                 channel.shutdown(); // Initiates a graceful shutdown
                 try {
                     if (!channel.awaitTermination(5, TimeUnit.SECONDS)) {

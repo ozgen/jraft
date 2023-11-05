@@ -48,4 +48,8 @@ public class Term implements Serializable, Comparable<Term> {
     public int hashCode() {
         return Objects.hash(number);
     }
+
+    public boolean equalsOrGreaterThan(Term otherTerm) {
+        return compareTo(otherTerm) >= 0;
+    }
 }

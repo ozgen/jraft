@@ -16,7 +16,7 @@ public class DefaultMessageService implements MessageHandlerService {
 
     @Override
     public CompletableFuture<Message> handleVoteRequest(Message message) {
-        return null;
+        return this.nodeServer.handleVoteRequest(message);
     }
 
     @Override
