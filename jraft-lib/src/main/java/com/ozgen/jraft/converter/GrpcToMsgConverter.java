@@ -1,14 +1,15 @@
-package com.ozgen.jraft.model.converter;
+package com.ozgen.jraft.converter;
 
 import com.google.protobuf.Timestamp;
 import com.jraft.Message;
-import com.ozgen.jraft.model.LogEntry;
-import com.ozgen.jraft.model.Term;
-import com.ozgen.jraft.model.payload.VoteRequestPayload;
-import com.ozgen.jraft.model.payload.impl.LogRequestPayloadData;
-import com.ozgen.jraft.model.payload.impl.LogResponsePayloadData;
-import com.ozgen.jraft.model.payload.impl.VoteRequestPayloadData;
-import com.ozgen.jraft.model.payload.impl.VoteResponsePayloadData;
+import com.ozgen.jraft.model.message.LogEntry;
+import com.ozgen.jraft.model.message.Term;
+import com.ozgen.jraft.model.message.payload.VoteRequestPayload;
+import com.ozgen.jraft.model.message.payload.impl.LogRequestPayloadData;
+import com.ozgen.jraft.model.message.payload.impl.VoteRequestPayloadData;
+import com.ozgen.jraft.model.node.Node;
+import com.ozgen.jraft.model.node.NodeData;
+import com.ozgen.jraft.model.node.NodeResponse;
 
 import java.time.Instant;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -16,26 +17,42 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class GrpcToMsgConverter {
 
     // Convert gRPC MessageWrapper to custom message
-    public com.ozgen.jraft.model.Message convert(Message.MessageWrapper grpcMessageWrapper) {
+    public com.ozgen.jraft.model.message.Message convertMessage(Message.MessageWrapper grpcMessageWrapper) {
         String sender = grpcMessageWrapper.getSender();
         Term term = new Term(grpcMessageWrapper.getTerm().getTerm());
 
         if (grpcMessageWrapper.hasVoteRequest()) {
             VoteRequestPayload voteRequestPayload = this.convertVoteRequest(grpcMessageWrapper.getVoteRequest());
-            return new com.ozgen.jraft.model.Message(sender, term, voteRequestPayload);
+            return new com.ozgen.jraft.model.message.Message(sender, term, voteRequestPayload);
         } else if (grpcMessageWrapper.hasVoteResponse()) {
             Message.VoteResponse voteResponse = grpcMessageWrapper.getVoteResponse();
-            return new com.ozgen.jraft.model.Message(sender, term, voteResponse);
+            return new com.ozgen.jraft.model.message.Message(sender, term, voteResponse);
         } else if (grpcMessageWrapper.hasLogRequest()) {
             LogRequestPayloadData logRequestPayloadData = this.convertLogRequest(grpcMessageWrapper.getLogRequest());
-            return new com.ozgen.jraft.model.Message(sender, term, logRequestPayloadData);
+            return new com.ozgen.jraft.model.message.Message(sender, term, logRequestPayloadData);
         } else if (grpcMessageWrapper.hasLogResponse()) {
             Message.LogResponse logResponse = grpcMessageWrapper.getLogResponse();
-            return new com.ozgen.jraft.model.Message(sender, term, logResponse);
+            return new com.ozgen.jraft.model.message.Message(sender, term, logResponse);
 
         } else {
             throw new IllegalArgumentException("Unsupported payload type in MessageWrapper");
         }
+    }
+
+    public Node convertJoinRequest(jraft.Node.JoinRequest joinRequest) {
+        String id = joinRequest.getNodeId();
+        NodeData nodeData = this.convertNodeData(joinRequest.getNodeData());
+        return new Node(id, nodeData);
+    }
+
+    public NodeResponse convertNodeResponse(jraft.Node.NodeResponse nodeResponse) {
+        boolean success = nodeResponse.getSuccess();
+        String message = nodeResponse.getMessage();
+        return new NodeResponse(success, message);
+    }
+
+    public String convertLeaveRequest(jraft.Node.LeaveRequest leaveRequest) {
+        return leaveRequest.getNodeId();
     }
 
     public Instant timestampToInstant(final Timestamp timestamp) {
@@ -62,30 +79,37 @@ public class GrpcToMsgConverter {
                 suffix, logRequest.getLeaderId());
     }
 
-    private com.ozgen.jraft.model.LogEntry convertLogEntry(Message.LogEntry logEntry) {
-        com.ozgen.jraft.model.Message message = this.convert(logEntry.getMessage());
+    private com.ozgen.jraft.model.message.LogEntry convertLogEntry(Message.LogEntry logEntry) {
+        com.ozgen.jraft.model.message.Message message = this.convertMessage(logEntry.getMessage());
         return new LogEntry(new Term(logEntry.getTerm().getTerm()), message);
     }
 
-    private com.ozgen.jraft.model.Message convert(Message.MessageContent grpcMessageContent) {
+    private com.ozgen.jraft.model.message.Message convertMessage(Message.MessageContent grpcMessageContent) {
         String sender = grpcMessageContent.getSender();
         Term term = new Term(grpcMessageContent.getTerm().getTerm());
 
         if (grpcMessageContent.hasVoteRequest()) {
             VoteRequestPayload voteRequestPayload = this.convertVoteRequest(grpcMessageContent.getVoteRequest());
-            return new com.ozgen.jraft.model.Message(sender, term, voteRequestPayload);
+            return new com.ozgen.jraft.model.message.Message(sender, term, voteRequestPayload);
         } else if (grpcMessageContent.hasVoteResponse()) {
             Message.VoteResponse voteResponse = grpcMessageContent.getVoteResponse();
-            return new com.ozgen.jraft.model.Message(sender, term, voteResponse);
+            return new com.ozgen.jraft.model.message.Message(sender, term, voteResponse);
         } else if (grpcMessageContent.hasLogRequest()) {
             LogRequestPayloadData logRequestPayloadData = this.convertLogRequest(grpcMessageContent.getLogRequest());
-            return new com.ozgen.jraft.model.Message(sender, term, logRequestPayloadData);
+            return new com.ozgen.jraft.model.message.Message(sender, term, logRequestPayloadData);
         } else if (grpcMessageContent.hasLogResponse()) {
             Message.LogResponse logResponse = grpcMessageContent.getLogResponse();
-            return new com.ozgen.jraft.model.Message(sender, term, logResponse);
+            return new com.ozgen.jraft.model.message.Message(sender, term, logResponse);
 
         } else {
             throw new IllegalArgumentException("Unsupported payload type in MessageWrapper");
         }
+    }
+
+    private NodeData convertNodeData(jraft.Node.NodeData nodeData) {
+        //todo add ip address validaton...
+        String ipAddress = nodeData.getIpAddress();
+        int port = nodeData.getPort();
+        return new NodeData(ipAddress, port);
     }
 }

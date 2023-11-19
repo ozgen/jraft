@@ -1,19 +1,19 @@
 package com.ozgen.jraft;
 
-import com.ozgen.jraft.model.LogEntry;
-import com.ozgen.jraft.model.Message;
-import com.ozgen.jraft.model.Term;
-import com.ozgen.jraft.model.converter.GrpcToMsgConverter;
-import com.ozgen.jraft.model.converter.MsgToGrpcConverter;
+import com.ozgen.jraft.model.message.LogEntry;
+import com.ozgen.jraft.model.message.Message;
+import com.ozgen.jraft.model.message.Term;
+import com.ozgen.jraft.converter.GrpcToMsgConverter;
+import com.ozgen.jraft.converter.MsgToGrpcConverter;
 import com.ozgen.jraft.model.enums.Role;
-import com.ozgen.jraft.model.payload.LogRequestPayload;
-import com.ozgen.jraft.model.payload.LogResponsePayload;
-import com.ozgen.jraft.model.payload.VoteRequestPayload;
-import com.ozgen.jraft.model.payload.VoteResponsePayload;
-import com.ozgen.jraft.model.payload.impl.LogRequestPayloadData;
-import com.ozgen.jraft.model.payload.impl.LogResponsePayloadData;
-import com.ozgen.jraft.model.payload.impl.VoteRequestPayloadData;
-import com.ozgen.jraft.model.payload.impl.VoteResponsePayloadData;
+import com.ozgen.jraft.model.message.payload.LogRequestPayload;
+import com.ozgen.jraft.model.message.payload.LogResponsePayload;
+import com.ozgen.jraft.model.message.payload.VoteRequestPayload;
+import com.ozgen.jraft.model.message.payload.VoteResponsePayload;
+import com.ozgen.jraft.model.message.payload.impl.LogRequestPayloadData;
+import com.ozgen.jraft.model.message.payload.impl.LogResponsePayloadData;
+import com.ozgen.jraft.model.message.payload.impl.VoteRequestPayloadData;
+import com.ozgen.jraft.model.message.payload.impl.VoteResponsePayloadData;
 import com.ozgen.jraft.node.DefaultNodeServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +82,7 @@ public class NodeServer extends DefaultNodeServer {
             for (String nodeId : this.getNodes()) {
                 if (!nodeId.equals(this.id)) {
                     CompletableFuture<Void> future = sendVoteRequestToNode(nodeId, this.msgToGrpcConverter.convert(voteRequestMessage))
-                            .thenCompose(responseMessage -> handleVoteResponse(grpcToMsgConverter.convert(responseMessage)));
+                            .thenCompose(responseMessage -> handleVoteResponse(grpcToMsgConverter.convertMessage(responseMessage)));
                     futures.add(future);
                 }
             }
@@ -118,7 +118,7 @@ public class NodeServer extends DefaultNodeServer {
             for (String nodeId : this.getNodes()) {
                 if (!nodeId.equals(this.id)) {
                     CompletableFuture<Void> future = sendLogRequestToNode(nodeId, this.msgToGrpcConverter.convert(logRequestMessage))
-                            .thenApply(this.grpcToMsgConverter::convert)
+                            .thenApply(this.grpcToMsgConverter::convertMessage)
                             .thenCompose(this::handleLogResponse);
                     futures.add(future);
                 }
@@ -228,6 +228,10 @@ public class NodeServer extends DefaultNodeServer {
                 }
             }
         });
+    }
+
+    public String getCurrentLeader() {
+        return currentLeader;
     }
 
     private boolean isLogUpToDate(int lastLogIndex, Term lastLogTerm) {
@@ -375,7 +379,7 @@ public class NodeServer extends DefaultNodeServer {
             return sendLogRequestToNode(follower, messageWrapper);
         }).thenApply(response -> {
             log.debug("Received response from follower {} after sending log request.", follower);
-            return this.grpcToMsgConverter.convert(response);
+            return this.grpcToMsgConverter.convertMessage(response);
         }).thenCompose(responseMessage -> {
             log.debug("Handling log response from follower {}.", follower);
             return this.handleLogResponse(responseMessage);

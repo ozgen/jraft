@@ -2,7 +2,8 @@ package com.ozgen.jraft.node;
 
 import com.jraft.Message;
 import com.jraft.MessageHandlerServiceGrpc;
-import com.ozgen.jraft.model.NodeData;
+import com.ozgen.jraft.model.node.NodeData;
+import com.ozgen.jraft.model.node.NodeResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -25,23 +26,38 @@ public class DefaultNodeServer {
 
 
     // Called when a node wants to join the cluster
-    public void joinCluster(String newNodeId, NodeData nodeData) {
-        log.info("Request to join the cluster received from node: {}", newNodeId);
-        if (!nodes.contains(newNodeId)) {
-            nodes.put(newNodeId, nodeData);
-            log.info("Node {} joined the cluster.", newNodeId);
-            // Optionally, broadcast this change to all nodes or use Raft itself to replicate this change
-        } else {
-            log.warn("Node {} is already a part of the cluster.", newNodeId);
-        }
+    public CompletableFuture<NodeResponse> joinCluster(String newNodeId, NodeData nodeData) {
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Request to join the cluster received from node: {}", newNodeId);
+
+            if (!nodes.containsKey(newNodeId)) {
+                nodes.put(newNodeId, nodeData);
+                log.info("Node {} joined the cluster.", newNodeId);
+                // Optionally, broadcast this change to all nodes or use Raft itself to replicate this change
+                return new NodeResponse(true, "Node " + newNodeId + " joined the cluster");
+            } else {
+                log.warn("Node {} is already a part of the cluster.", newNodeId);
+                return new NodeResponse(false, "Node " + newNodeId + " is already part of the cluster");
+            }
+        });
     }
 
     // In leaveCluster method
-    public void leaveCluster(String nodeId) {
-        log.info("Request to leave the cluster received from node: {}", nodeId);
-        this.removeNode(nodeId);
-        nodes.remove(nodeId);
-        // Optionally, broadcast this change to all nodes or use Raft itself to replicate this change
+    public CompletableFuture<NodeResponse> leaveCluster(String nodeId) {
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Request to leave the cluster received from node: {}", nodeId);
+
+            if (nodes.containsKey(nodeId)) {
+                this.removeNode(nodeId);
+                nodes.remove(nodeId);
+                log.info("Node {} left the cluster.", nodeId);
+                // Optionally, broadcast this change to all nodes or use Raft itself to replicate this change
+                return new NodeResponse(true, "Node " + nodeId + " left the cluster");
+            } else {
+                log.warn("Node {} is not part of the cluster.", nodeId);
+                return new NodeResponse(false, "Node " + nodeId + " is not part of the cluster");
+            }
+        });
     }
 
     // Getter for other parts of your code

@@ -2,21 +2,27 @@ package com.ozgen.jraft.model.converter;
 
 import com.google.protobuf.Timestamp;
 import com.jraft.Message;
-import com.ozgen.jraft.model.Term;
-import com.ozgen.jraft.model.payload.impl.VoteRequestPayloadData;
-import org.junit.Before;
-import org.junit.Test;
+import com.ozgen.jraft.converter.MsgToGrpcConverter;
+import com.ozgen.jraft.model.message.Term;
+import com.ozgen.jraft.model.message.payload.impl.VoteRequestPayloadData;
+import com.ozgen.jraft.model.node.NodeData;
+import com.ozgen.jraft.model.node.NodeResponse;
+import jraft.Node;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MsgToGrpcConverterTest {
 
     private MsgToGrpcConverter converter;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         converter = new MsgToGrpcConverter();
     }
@@ -34,7 +40,7 @@ public class MsgToGrpcConverterTest {
 
     @Test
     public void testConvertVoteRequest() {
-        com.ozgen.jraft.model.Message customMessage = new com.ozgen.jraft.model.Message("sender1", new Term(1), new VoteRequestPayloadData(5, new Term(2)));
+        com.ozgen.jraft.model.message.Message customMessage = new com.ozgen.jraft.model.message.Message("sender1", new Term(1), new VoteRequestPayloadData(5, new Term(2)));
 
         Message.MessageWrapper grpcMessageWrapper = converter.convert(customMessage);
 
@@ -47,13 +53,59 @@ public class MsgToGrpcConverterTest {
 
     // TODO: Add more test cases for VoteResponsePayload, LogRequestPayload, and LogResponsePayload
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testConvertWithUnsupportedPayload() {
-        com.ozgen.jraft.model.Message customMessage = new com.ozgen.jraft.model.Message("test", new Term(1), new Object());
+        com.ozgen.jraft.model.message.Message customMessage =
+                new com.ozgen.jraft.model.message.Message("test", new Term(1), new Object());
 
-        converter.convert(customMessage);
+        assertThrows(IllegalArgumentException.class, () -> {
+            converter.convert(customMessage);
+        });
     }
 
 
+    @Test
+    void testConvertJoinRequest() {
+        // given
+        String testId = UUID.randomUUID().toString();
+        String ipAddress = "127.0.0.1";
+        int port = 8080;
+        com.ozgen.jraft.model.node.Node node = new com.ozgen.jraft.model.node.Node(testId, new NodeData(ipAddress, port));
+
+        //when
+        Node.JoinRequest joinRequest = converter.convertJoinRequest(node);
+
+        // then
+        assertEquals(testId, joinRequest.getNodeId());
+        assertEquals(ipAddress, joinRequest.getNodeData().getIpAddress());
+        assertEquals(port, joinRequest.getNodeData().getPort());
+    }
+
+    @Test
+    void testConvertNodeResponse() {
+        // given
+        boolean success = true;
+        String message = "test_message";
+        NodeResponse nodeResponse = new NodeResponse(success, message);
+
+        //when
+        Node.NodeResponse response = converter.convertNodeResponse(nodeResponse);
+
+        // then
+        assertEquals(success, response.getSuccess());
+        assertEquals(message, response.getMessage());
+    }
+
+    @Test
+    void testConvertLeaveRequest() {
+        // given
+        String testId = UUID.randomUUID().toString();
+
+        //when
+        Node.LeaveRequest leaveRequest = converter.convertLeaveRequest(testId);
+
+        // then
+        assertEquals(testId, leaveRequest.getNodeId());
+    }
 }
 

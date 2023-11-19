@@ -1,8 +1,8 @@
 package com.ozgen.jraft;
 
 
-import com.ozgen.jraft.model.LogEntry;
-import com.ozgen.jraft.model.Term;
+import com.ozgen.jraft.model.message.LogEntry;
+import com.ozgen.jraft.model.message.Term;
 import com.ozgen.jraft.utils.UUIDGenerator;
 import org.junit.jupiter.api.BeforeEach;
 

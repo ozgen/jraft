@@ -1,6 +1,6 @@
 package com.ozgen.jraft.service;
 
-import com.ozgen.jraft.model.Message;
+import com.ozgen.jraft.model.message.Message;
 
 import java.util.concurrent.CompletableFuture;
 

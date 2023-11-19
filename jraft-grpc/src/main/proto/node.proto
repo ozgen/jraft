@@ -20,10 +20,6 @@ message LeaveRequest {
   string nodeId = 1;
 }
 
-message HeartbeatRequest {
-  string nodeId = 1;
-}
-
 message NodeData {
   string ipAddress = 1;
   int32 port = 2;

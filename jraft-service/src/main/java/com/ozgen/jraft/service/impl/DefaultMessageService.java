@@ -1,11 +1,13 @@
 package com.ozgen.jraft.service.impl;
 
+import com.google.inject.Singleton;
 import com.ozgen.jraft.NodeServer;
-import com.ozgen.jraft.model.Message;
+import com.ozgen.jraft.model.message.Message;
 import com.ozgen.jraft.service.MessageHandlerService;
 
 import java.util.concurrent.CompletableFuture;
 
+@Singleton
 public class DefaultMessageService implements MessageHandlerService {
 
     private final NodeServer nodeServer;

@@ -1,6 +1,6 @@
-package com.ozgen.jraft.model.payload.impl;
+package com.ozgen.jraft.model.message.payload.impl;
 
-import com.ozgen.jraft.model.payload.LogResponsePayload;
+import com.ozgen.jraft.model.message.payload.LogResponsePayload;
 
 public class LogResponsePayloadData implements LogResponsePayload {
 

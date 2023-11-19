@@ -1,17 +1,16 @@
 package com.ozgen.jraft.model.converter;
 
-import com.google.protobuf.Timestamp;
 import com.jraft.Message;
-import com.ozgen.jraft.model.LogEntry;
-import com.ozgen.jraft.model.payload.LogRequestPayload;
-import com.ozgen.jraft.model.payload.VoteRequestPayload;
-import com.ozgen.jraft.model.payload.impl.LogRequestPayloadData;
+import com.ozgen.jraft.converter.GrpcToMsgConverter;
+import com.ozgen.jraft.model.message.LogEntry;
+import com.ozgen.jraft.model.message.payload.LogRequestPayload;
+import com.ozgen.jraft.model.message.payload.VoteRequestPayload;
+import jraft.Node;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +27,7 @@ class GrpcToMsgConverterTest {
 
     @Test
     void testConvertVoteRequest() {
+        // given
         Message.VoteRequest voteRequest = Message.VoteRequest.newBuilder()
                 .setLastTerm(Message.Term.newBuilder().setTerm(5).build())
                 .setLogLength(10)
@@ -38,9 +38,10 @@ class GrpcToMsgConverterTest {
                 .setVoteRequest(voteRequest)
                 .setTerm(Message.Term.newBuilder().setTerm(5).build())
                 .build();
+        // when
+        com.ozgen.jraft.model.message.Message result = converter.convertMessage(wrapper);
 
-        com.ozgen.jraft.model.Message result = converter.convert(wrapper);
-
+        //then
         assertEquals("TestSender", result.getSender());
         VoteRequestPayload payload = (VoteRequestPayload) result.getPayload();
         assertEquals(5, payload.getLastTerm().getNumber());
@@ -54,13 +55,13 @@ class GrpcToMsgConverterTest {
                 .setSender("TestSender")
                 .setTerm(Message.Term.newBuilder().setTerm(5).build())
                 .build();
-
-        assertThrows(IllegalArgumentException.class, () -> converter.convert(wrapper));
+        //when
+        assertThrows(IllegalArgumentException.class, () -> converter.convertMessage(wrapper));
     }
 
     @Test
     void testConvertLogRequest() {
-        // Set up test data
+        // given
         Message.LogRequest logRequest = Message.LogRequest.newBuilder()
                 .setPrefixLength(2)
                 .setPrefixTerm(Message.Term.newBuilder().setTerm(2).build())
@@ -92,10 +93,10 @@ class GrpcToMsgConverterTest {
                 .setLogRequest(grpcLogRequest)
                 .build();
 
-        // Call method
-        com.ozgen.jraft.model.Message result = converter.convert(grpcMessageWrapper);
+        // when
+        com.ozgen.jraft.model.message.Message result = converter.convertMessage(grpcMessageWrapper);
 
-        // Verify results
+        // then
         LogRequestPayload payloadData = (LogRequestPayload) result.getPayload();
         assertEquals(2, payloadData.getPrefixLength());
         assertEquals(2, payloadData.getPrefixTerm().getNumber());
@@ -106,5 +107,61 @@ class GrpcToMsgConverterTest {
         assertEquals(1, suffixes.size());
         assertEquals(1, suffixes.get(0).getTerm().getNumber());
         assertEquals("TestSender", suffixes.get(0).getMessage().getSender());
+    }
+
+    @Test
+    void testConvertJoinRequest() {
+        // given
+        String testId = UUID.randomUUID().toString();
+        String ipAddress = "127.0.0.1";
+        int port = 8080;
+        Node.JoinRequest joinRequest = Node.JoinRequest.newBuilder()
+                .setNodeId(testId)
+                .setNodeData(Node.NodeData.newBuilder()
+                        .setIpAddress(ipAddress)
+                        .setPort(port)
+                        .build())
+                .build();
+
+        //when
+        com.ozgen.jraft.model.node.Node node = converter.convertJoinRequest(joinRequest);
+
+        // then
+        assertEquals(testId, node.getId());
+        assertEquals(ipAddress, node.getNodeData().getIpAddress());
+        assertEquals(port, node.getNodeData().getPort());
+    }
+
+    @Test
+    void testConvertNodeResponse() {
+        // given
+        boolean success = true;
+        String message = "test_message";
+        Node.NodeResponse nodeResponse = Node.NodeResponse.newBuilder()
+                .setSuccess(success)
+                .setMessage(message)
+                .build();
+
+        //when
+        com.ozgen.jraft.model.node.NodeResponse response = converter.convertNodeResponse(nodeResponse);
+
+        // then
+        assertEquals(success, response.isSuccess());
+        assertEquals(message, response.getMessage());
+    }
+
+    @Test
+    void testConvertLeaveRequest() {
+        // given
+        String testId = UUID.randomUUID().toString();
+        Node.LeaveRequest leaveRequest = Node.LeaveRequest.newBuilder()
+                .setNodeId(testId)
+                .build();
+
+        //when
+        String nodeId = converter.convertLeaveRequest(leaveRequest);
+
+        // then
+        assertEquals(testId, nodeId);
     }
 }

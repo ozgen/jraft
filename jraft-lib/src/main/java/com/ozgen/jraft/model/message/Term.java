@@ -1,4 +1,4 @@
-package com.ozgen.jraft.model;
+package com.ozgen.jraft.model.message;
 
 import java.io.Serializable;
 import java.util.Objects;

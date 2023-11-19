@@ -1,16 +1,16 @@
 package com.ozgen.jraft.managers;
 
-import com.ozgen.jraft.model.LogEntry;
-import com.ozgen.jraft.model.Message;
+import com.ozgen.jraft.model.message.LogEntry;
+import com.ozgen.jraft.model.message.Message;
 import com.ozgen.jraft.model.NodeState;
-import com.ozgen.jraft.model.Term;
-import com.ozgen.jraft.model.converter.GrpcToMsgConverter;
-import com.ozgen.jraft.model.converter.MsgToGrpcConverter;
+import com.ozgen.jraft.model.message.Term;
+import com.ozgen.jraft.converter.GrpcToMsgConverter;
+import com.ozgen.jraft.converter.MsgToGrpcConverter;
 import com.ozgen.jraft.model.enums.Role;
-import com.ozgen.jraft.model.payload.LogRequestPayload;
-import com.ozgen.jraft.model.payload.LogResponsePayload;
-import com.ozgen.jraft.model.payload.impl.LogRequestPayloadData;
-import com.ozgen.jraft.model.payload.impl.LogResponsePayloadData;
+import com.ozgen.jraft.model.message.payload.LogRequestPayload;
+import com.ozgen.jraft.model.message.payload.LogResponsePayload;
+import com.ozgen.jraft.model.message.payload.impl.LogRequestPayloadData;
+import com.ozgen.jraft.model.message.payload.impl.LogResponsePayloadData;
 import com.ozgen.jraft.node.DefaultNodeServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +89,7 @@ public class LogManager extends DefaultNodeServer {
             return sendLogRequestToNode(follower, messageWrapper);
         }).thenApply(response -> {
             log.debug("Received response from follower {} after sending log request.", follower);
-            return this.grpcToMsgConverter.convert(response);
+            return this.grpcToMsgConverter.convertMessage(response);
         }).thenCompose(responseMessage -> {
             log.debug("Handling log response from follower {}.", follower);
             return this.handleLogResponse(responseMessage, sentLength, ackedLength, nodeState);

@@ -1,4 +1,4 @@
-package com.ozgen.jraft.model.payload;
+package com.ozgen.jraft.model.message.payload;
 
 public interface VoteResponsePayload {
     /**

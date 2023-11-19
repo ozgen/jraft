@@ -1,13 +1,13 @@
 package com.ozgen.jraft.managers;
 
-import com.ozgen.jraft.model.Message;
+import com.ozgen.jraft.model.message.Message;
 import com.ozgen.jraft.model.NodeState;
-import com.ozgen.jraft.model.converter.GrpcToMsgConverter;
-import com.ozgen.jraft.model.converter.MsgToGrpcConverter;
+import com.ozgen.jraft.converter.GrpcToMsgConverter;
+import com.ozgen.jraft.converter.MsgToGrpcConverter;
 import com.ozgen.jraft.model.enums.Role;
-import com.ozgen.jraft.model.payload.VoteRequestPayload;
-import com.ozgen.jraft.model.payload.VoteResponsePayload;
-import com.ozgen.jraft.model.payload.impl.VoteRequestPayloadData;
+import com.ozgen.jraft.model.message.payload.VoteRequestPayload;
+import com.ozgen.jraft.model.message.payload.VoteResponsePayload;
+import com.ozgen.jraft.model.message.payload.impl.VoteRequestPayloadData;
 import com.ozgen.jraft.node.DefaultNodeServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ public class VoteManager extends DefaultNodeServer {
             for (String nodeId : this.getNodes()) {
                 if (!nodeId.equals(nodeState.getId())) {
                     CompletableFuture<Void> future = sendVoteRequestToNode(nodeId, this.msgToGrpcConverter.convert(voteRequestMessage))
-                            .thenCompose(responseMessage -> handleVoteResponse(grpcToMsgConverter.convert(responseMessage), sentLengthSize, nodeState));
+                            .thenCompose(responseMessage -> handleVoteResponse(grpcToMsgConverter.convertMessage(responseMessage), sentLengthSize, nodeState));
                     futures.add(future);
                 }
             }

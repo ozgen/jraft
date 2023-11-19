@@ -3,8 +3,8 @@ package com.ozgen.jraft;
 import com.google.inject.Singleton;
 import com.jraft.Message;
 import com.jraft.MessageHandlerServiceGrpc;
-import com.ozgen.jraft.model.converter.GrpcToMsgConverter;
-import com.ozgen.jraft.model.converter.MsgToGrpcConverter;
+import com.ozgen.jraft.converter.GrpcToMsgConverter;
+import com.ozgen.jraft.converter.MsgToGrpcConverter;
 import com.ozgen.jraft.service.MessageHandlerService;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public class GrpcMessageHandlerServiceImpl extends MessageHandlerServiceGrpc.Mes
     @Override
     public void handleVoteRequest(Message.MessageWrapper request, StreamObserver<Message.MessageWrapper> responseObserver) {
         try {
-            com.ozgen.jraft.model.Message message = this.grpcToMsgConverter.convert(request);
+            com.ozgen.jraft.model.message.Message message = this.grpcToMsgConverter.convertMessage(request);
             this.messageHandlerService.handleVoteRequest(message).whenComplete((result, t) -> {
 
                 if (t != null) {
@@ -50,7 +50,7 @@ public class GrpcMessageHandlerServiceImpl extends MessageHandlerServiceGrpc.Mes
     @Override
     public void handleLogRequest(Message.MessageWrapper request, StreamObserver<Message.MessageWrapper> responseObserver) {
         try {
-            com.ozgen.jraft.model.Message message = this.grpcToMsgConverter.convert(request);
+            com.ozgen.jraft.model.message.Message message = this.grpcToMsgConverter.convertMessage(request);
             this.messageHandlerService.handleLogRequest(message).whenComplete((result, t) -> {
 
                 if (t != null) {

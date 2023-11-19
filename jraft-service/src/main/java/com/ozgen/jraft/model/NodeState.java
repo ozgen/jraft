@@ -6,7 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class NodeState {
     private String id;
-    private Term currentTerm;
+    private com.ozgen.jraft.model.message.Term currentTerm;
     private String votedFor;
     private Role currentRole;
     private String currentLeader;
@@ -14,9 +14,9 @@ public class NodeState {
 
     private int commitLength;
 
-    private CopyOnWriteArrayList<LogEntry> logs;
+    private CopyOnWriteArrayList<com.ozgen.jraft.model.message.LogEntry> logs;
 
-    public NodeState(String id, Term currentTerm, String votedFor, Role currentRole, String currentLeader, int votesReceived, int commitLength, CopyOnWriteArrayList<LogEntry> logs) {
+    public NodeState(String id, com.ozgen.jraft.model.message.Term currentTerm, String votedFor, Role currentRole, String currentLeader, int votesReceived, int commitLength, CopyOnWriteArrayList<com.ozgen.jraft.model.message.LogEntry> logs) {
         this.id = id;
         this.currentTerm = currentTerm;
         this.votedFor = votedFor;
@@ -46,7 +46,7 @@ public class NodeState {
         return id;
     }
 
-    public Term getCurrentTerm() {
+    public com.ozgen.jraft.model.message.Term getCurrentTerm() {
         return currentTerm;
     }
 
@@ -66,7 +66,7 @@ public class NodeState {
         return votesReceived;
     }
 
-    public void setCurrentTerm(Term currentTerm) {
+    public void setCurrentTerm(com.ozgen.jraft.model.message.Term currentTerm) {
         this.currentTerm = currentTerm;
     }
 
@@ -86,11 +86,11 @@ public class NodeState {
         this.votesReceived = votesReceived;
     }
 
-    public CopyOnWriteArrayList<LogEntry> getLogs() {
+    public CopyOnWriteArrayList<com.ozgen.jraft.model.message.LogEntry> getLogs() {
         return logs;
     }
 
-    public void setLogs(CopyOnWriteArrayList<LogEntry> logs) {
+    public void setLogs(CopyOnWriteArrayList<com.ozgen.jraft.model.message.LogEntry> logs) {
         this.logs = logs;
     }
 

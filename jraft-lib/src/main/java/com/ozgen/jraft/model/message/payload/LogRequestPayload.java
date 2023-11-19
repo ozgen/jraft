@@ -1,7 +1,7 @@
-package com.ozgen.jraft.model.payload;
+package com.ozgen.jraft.model.message.payload;
 
-import com.ozgen.jraft.model.LogEntry;
-import com.ozgen.jraft.model.Term;
+import com.ozgen.jraft.model.message.LogEntry;
+import com.ozgen.jraft.model.message.Term;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
