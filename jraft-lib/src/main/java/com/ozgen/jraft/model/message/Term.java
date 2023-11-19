@@ -1,4 +1,4 @@
-package com.ozgen.jraft.model;
+package com.ozgen.jraft.model.message;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -47,5 +47,9 @@ public class Term implements Serializable, Comparable<Term> {
     @Override
     public int hashCode() {
         return Objects.hash(number);
+    }
+
+    public boolean equalsOrGreaterThan(Term otherTerm) {
+        return compareTo(otherTerm) >= 0;
     }
 }

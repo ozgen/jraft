@@ -1,4 +1,4 @@
-package com.ozgen.jraft.model;
+package com.ozgen.jraft.model.message;
 
 public class LogEntry {
 

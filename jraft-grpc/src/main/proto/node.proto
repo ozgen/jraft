@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package jraft;
+
+// Service definition
+service NodeService {
+  // RPC methods
+  rpc joinCluster(JoinRequest) returns (NodeResponse);
+  rpc leaveCluster(LeaveRequest) returns (NodeResponse);
+}
+
+// Message definitions
+
+message JoinRequest {
+  string nodeId = 1;
+  NodeData nodeData = 2;
+}
+
+message LeaveRequest {
+  string nodeId = 1;
+}
+
+message NodeData {
+  string ipAddress = 1;
+  int32 port = 2;
+}
+
+message NodeResponse {
+  bool success = 1;
+  string message = 2;
+}

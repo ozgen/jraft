@@ -1,13 +1,15 @@
-package com.ozgen.jraft.model.converter;
+package com.ozgen.jraft.converter;
 
 import com.google.protobuf.Timestamp;
 import com.jraft.Message;
-import com.ozgen.jraft.model.LogEntry;
-import com.ozgen.jraft.model.payload.LogRequestPayload;
-import com.ozgen.jraft.model.payload.LogResponsePayload;
-import com.ozgen.jraft.model.payload.VoteRequestPayload;
-import com.ozgen.jraft.model.payload.VoteResponsePayload;
-import com.ozgen.jraft.model.payload.impl.LogRequestPayloadData;
+import com.ozgen.jraft.model.message.LogEntry;
+import com.ozgen.jraft.model.message.payload.LogRequestPayload;
+import com.ozgen.jraft.model.message.payload.LogResponsePayload;
+import com.ozgen.jraft.model.message.payload.VoteRequestPayload;
+import com.ozgen.jraft.model.message.payload.VoteResponsePayload;
+import com.ozgen.jraft.model.message.payload.impl.LogRequestPayloadData;
+import com.ozgen.jraft.model.node.NodeData;
+import jraft.Node;
 
 import java.time.Instant;
 import java.util.List;
@@ -16,7 +18,7 @@ import java.util.stream.Collectors;
 public class MsgToGrpcConverter {
 
     // Convert custom message to gRPC MessageWrapper
-    public Message.MessageWrapper convert(com.ozgen.jraft.model.Message customMessage) {
+    public Message.MessageWrapper convert(com.ozgen.jraft.model.message.Message customMessage) {
         Message.MessageWrapper.Builder grpcMessageWrapperBuilder = Message.MessageWrapper.newBuilder();
 
         grpcMessageWrapperBuilder.setSender(customMessage.getSender());
@@ -45,6 +47,26 @@ public class MsgToGrpcConverter {
 
     public Timestamp instantToTimestamp(final Instant instant) {
         return Timestamp.newBuilder().setSeconds(instant.getEpochSecond()).setNanos(instant.getNano()).build();
+    }
+
+    public Node.JoinRequest convertJoinRequest(com.ozgen.jraft.model.node.Node node){
+        return Node.JoinRequest.newBuilder()
+                .setNodeId(node.getId())
+                .setNodeData(this.convertNodeData(node.getNodeData()))
+                .build();
+    }
+
+    public Node.NodeResponse convertNodeResponse(com.ozgen.jraft.model.node.NodeResponse nodeResponse){
+        return Node.NodeResponse.newBuilder()
+                .setSuccess(nodeResponse.isSuccess())
+                .setMessage(nodeResponse.getMessage())
+                .build();
+    }
+
+    public Node.LeaveRequest convertLeaveRequest(String nodeId){
+        return Node.LeaveRequest.newBuilder()
+                .setNodeId(nodeId)
+                .build();
     }
 
     private Message.VoteRequest convertVoteRequest(VoteRequestPayload voteRequestPayload) {
@@ -94,7 +116,7 @@ public class MsgToGrpcConverter {
                 .build();
     }
 
-    private Message.MessageContent convertContent(com.ozgen.jraft.model.Message customMessage) {
+    private Message.MessageContent convertContent(com.ozgen.jraft.model.message.Message customMessage) {
         Message.MessageContent.Builder grpcMessageWrapperBuilder = Message.MessageContent.newBuilder();
 
         grpcMessageWrapperBuilder.setSender(customMessage.getSender());
@@ -119,5 +141,12 @@ public class MsgToGrpcConverter {
         }
 
         return grpcMessageWrapperBuilder.build();
+    }
+
+    private Node.NodeData convertNodeData(NodeData nodeData){
+      return   Node.NodeData.newBuilder()
+                .setIpAddress(nodeData.getIpAddress())
+                .setPort(nodeData.getPort())
+                .build();
     }
 }

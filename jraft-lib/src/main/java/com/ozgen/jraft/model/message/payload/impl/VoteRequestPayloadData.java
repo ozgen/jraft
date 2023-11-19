@@ -1,7 +1,7 @@
-package com.ozgen.jraft.model.payload.impl;
+package com.ozgen.jraft.model.message.payload.impl;
 
-import com.ozgen.jraft.model.Term;
-import com.ozgen.jraft.model.payload.VoteRequestPayload;
+import com.ozgen.jraft.model.message.Term;
+import com.ozgen.jraft.model.message.payload.VoteRequestPayload;
 
 public class VoteRequestPayloadData implements VoteRequestPayload {
 

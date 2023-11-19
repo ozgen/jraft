@@ -1,6 +1,6 @@
-package com.ozgen.jraft.model.payload.impl;
+package com.ozgen.jraft.model.message.payload.impl;
 
-import com.ozgen.jraft.model.payload.VoteResponsePayload;
+import com.ozgen.jraft.model.message.payload.VoteResponsePayload;
 
 public class VoteResponsePayloadData implements VoteResponsePayload {
 

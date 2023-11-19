@@ -2,9 +2,9 @@ package com.ozgen.jraft.service.impl;
 
 import com.google.inject.Singleton;
 import com.jraft.MessageHandlerServiceGrpc;
-import com.ozgen.jraft.model.Message;
-import com.ozgen.jraft.model.converter.GrpcToMsgConverter;
-import com.ozgen.jraft.model.converter.MsgToGrpcConverter;
+import com.ozgen.jraft.model.message.Message;
+import com.ozgen.jraft.converter.GrpcToMsgConverter;
+import com.ozgen.jraft.converter.MsgToGrpcConverter;
 import com.ozgen.jraft.service.MessageHandlerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
