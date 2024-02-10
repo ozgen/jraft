@@ -1,6 +1,7 @@
 package com.ozgen.jraft.service;
 
 import com.ozgen.jraft.model.message.Message;
+import com.ozgen.jraft.node.NodeServer;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -21,5 +22,8 @@ public interface MessageHandlerService {
    * @return The resulting message after processing the log request.
    */
   CompletableFuture<Message> handleLogRequest(Message message);
+
+
+  void setNodeServer(NodeServer nodeServer);
 }
 

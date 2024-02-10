@@ -1,11 +1,13 @@
-package com.ozgen.jraft;
+package com.ozgen.jraft.node;
 
-import com.ozgen.jraft.model.message.LogEntry;
-import com.ozgen.jraft.model.message.Message;
-import com.ozgen.jraft.model.message.Term;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.ozgen.jraft.converter.GrpcToMsgConverter;
 import com.ozgen.jraft.converter.MsgToGrpcConverter;
 import com.ozgen.jraft.model.enums.Role;
+import com.ozgen.jraft.model.message.LogEntry;
+import com.ozgen.jraft.model.message.Message;
+import com.ozgen.jraft.model.message.Term;
 import com.ozgen.jraft.model.message.payload.LogRequestPayload;
 import com.ozgen.jraft.model.message.payload.LogResponsePayload;
 import com.ozgen.jraft.model.message.payload.VoteRequestPayload;
@@ -14,7 +16,8 @@ import com.ozgen.jraft.model.message.payload.impl.LogRequestPayloadData;
 import com.ozgen.jraft.model.message.payload.impl.LogResponsePayloadData;
 import com.ozgen.jraft.model.message.payload.impl.VoteRequestPayloadData;
 import com.ozgen.jraft.model.message.payload.impl.VoteResponsePayloadData;
-import com.ozgen.jraft.node.DefaultNodeServer;
+import com.ozgen.jraft.model.node.NodeData;
+import com.ozgen.jraft.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,28 +27,32 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-
+@Singleton
 public class NodeServer extends DefaultNodeServer {
 
     private static final Logger log = LoggerFactory.getLogger(NodeServer.class);
 
-    private String id;
     private Term currentTerm;
     private String votedFor;
     private CopyOnWriteArrayList<LogEntry> logs;
     private int commitLength;
     private Role currentRole;
     private String currentLeader;
-    private int votesReceived;
-
-    private final MsgToGrpcConverter msgToGrpcConverter;
-    private final GrpcToMsgConverter grpcToMsgConverter;
+    private volatile int votesReceived;
 
     private ConcurrentHashMap<String, Integer> sentLength = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Integer> ackedLength = new ConcurrentHashMap<>();
 
-    public NodeServer(String id, MsgToGrpcConverter msgToGrpcConverter, GrpcToMsgConverter grpcToMsgConverter) {
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    @Inject
+    public NodeServer(String id, ConcurrentHashMap<String, NodeData> nodes,
+                      MsgToGrpcConverter msgToGrpcConverter,
+                      GrpcToMsgConverter grpcToMsgConverter) {
         this.id = id;
         this.currentTerm = new Term(0);
         this.votedFor = null;  // Assuming -1 indicates not voted for anyone
@@ -56,40 +63,68 @@ public class NodeServer extends DefaultNodeServer {
         this.votesReceived = 0;
         this.msgToGrpcConverter = msgToGrpcConverter;
         this.grpcToMsgConverter = grpcToMsgConverter;
+        log.info("Initialized Node ID: {}", this.id);
+        this.nodes = nodes;
+    }
+
+    public void startElectionTask() {
+        final Runnable electionTask = () -> {
+            if (currentLeader == null && (id != null && !id.isEmpty())) {
+                sendVoteRequest();
+            } else if (id != null && currentRole == Role.LEADER) {
+                sendLogRequest();
+            } else {
+//                log.error("ID is still empty");
+            }
+        };
+
+        scheduler.scheduleAtFixedRate(electionTask, 2, 5, TimeUnit.SECONDS);
     }
 
     public CompletableFuture<Void> sendVoteRequest() {
         return CompletableFuture.runAsync(() -> {
             log.info("Initiating vote request...");
 
+            ThreadUtils.addRandomDelayMilliseconds();
+
             this.currentRole = Role.CANDIDATE;
             this.currentTerm = this.currentTerm.next(); // Increment term
             this.votedFor = this.id;  // Vote for itself
             this.votesReceived = 1;   // Count the self-vote
 
-            log.info("Became a CANDIDATE with term: {}", this.currentTerm);
+            log.info("Became a CANDIDATE with term: {} Node Id: {}", this.currentTerm, id);
 
             // Construct the vote request message
-            VoteRequestPayload payload = new VoteRequestPayloadData(this.logs.size(), this.currentTerm);
+            VoteRequestPayload payload = new VoteRequestPayloadData(this.logs.size() + 1, this.currentTerm);
             Message voteRequestMessage = new Message(this.id, this.currentTerm, payload);
+            appendMessageEntries(voteRequestMessage);
+
 
             // List to hold all completable futures for broadcasting vote requests
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            List<CompletableFuture> futures = new ArrayList<>();
 
             log.info("Broadcasting vote request to other nodes...");
 
             // Broadcast the vote request to all other nodes
-            for (String nodeId : this.getNodes()) {
-                if (!nodeId.equals(this.id)) {
-                    CompletableFuture<Void> future = sendVoteRequestToNode(nodeId, this.msgToGrpcConverter.convert(voteRequestMessage))
-                            .thenCompose(responseMessage -> handleVoteResponse(grpcToMsgConverter.convertMessage(responseMessage)));
-                    futures.add(future);
-                }
-            }
+            this.getNodes().stream()
+                    .filter(nodeId -> !nodeId.equals(this.id)) // Exclude self
+                    .forEach(nodeId -> {
+                        CompletableFuture<Void> future = sendVoteRequestToNode(nodeId, this.msgToGrpcConverter.convert(voteRequestMessage))
+                                .thenCompose(responseMessage -> handleVoteResponse(grpcToMsgConverter.convertMessage(responseMessage)))
+                                .exceptionally(ex -> {
+                                    log.error("Error sending vote request to node " + nodeId + ": " + ex.getMessage(), ex);
+                                    return null;
+                                });
+                        futures.add(future);
+                    });
 
             // Wait for all vote requests to complete
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                    .exceptionally(ex -> {
+                        log.error("Error in processing vote requests: " + ex.getMessage(), ex);
+                        return null;
+                    })
+                    .join();
             log.info("Completed vote request broadcast.");
         });
     }
@@ -98,14 +133,14 @@ public class NodeServer extends DefaultNodeServer {
         return CompletableFuture.runAsync(() -> {
             if (this.currentRole != Role.LEADER) {
                 // The node must be a leader to send log requests.
-                log.warn("Attempted to send log request as a non-LEADER role.");
+                log.warn("Attempted to send log request as a non-LEADER role. Node Id: {}", id);
                 return;
             }
 
             log.info("Initiating log request as LEADER for term: {}", this.currentTerm);
 
             // Construct the log request message
-            int prefixLen = logs.size() - 1; // Assuming logs.size() gives the latest index + 1
+            int prefixLen = logs.size() == 0 ? logs.size() : logs.size() - 1; // Assuming logs.size() gives the latest index + 1
             LogRequestPayload payload = new LogRequestPayloadData(prefixLen, this.currentTerm, this.commitLength, this.logs, this.id);
             Message logRequestMessage = new Message(this.id, this.currentTerm, payload);
 
@@ -134,6 +169,11 @@ public class NodeServer extends DefaultNodeServer {
 
     public CompletableFuture<Message> handleLogRequest(Message message) {
         log.info("Received log request from sender: {}", message.getSender());
+        if (this.currentRole == Role.LEADER) {
+            // The node must be a follower to handle log requests.
+            log.warn("Attempted to handling log request as a LEADER role. Node Id: {}", id);
+            currentLeader = null;
+        }
 
         LogRequestPayload payload = (LogRequestPayload) message.getPayload();
         return CompletableFuture.supplyAsync(() -> payload)
@@ -144,7 +184,7 @@ public class NodeServer extends DefaultNodeServer {
     }
 
     public CompletableFuture<Void> handleLogResponse(Message message) {
-        log.info("Received log response from sender: {}", message.getSender());
+        log.info("Received log response from sender: {} currentLeader is {}", message.getSender(), currentLeader);
 
         return CompletableFuture.supplyAsync(() -> {
             String sender = message.getSender();
@@ -162,6 +202,9 @@ public class NodeServer extends DefaultNodeServer {
 
 
     public CompletableFuture<Message> handleVoteRequest(Message message) {
+        if (this.id.isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        }
         log.info("Received vote request from sender: {}", message.getSender());
 
         return CompletableFuture.supplyAsync(() -> {
@@ -170,7 +213,7 @@ public class NodeServer extends DefaultNodeServer {
 
             // If term in the voteRequest is greater than current term, update term and become follower
             if (payload.getLastTerm().isGreaterThan(this.currentTerm)) {
-                log.debug("Vote request term is greater than current term. Becoming a follower.");
+                log.debug("Vote request term is greater than current term. Becoming a follower. Node Id: {}", id);
                 this.currentTerm = payload.getLastTerm();
                 this.currentRole = Role.FOLLOWER;
                 this.votedFor = null;
@@ -188,7 +231,9 @@ public class NodeServer extends DefaultNodeServer {
             }
 
             VoteResponsePayload voteResponsePayload = new VoteResponsePayloadData(grantVote);
-            return new Message(this.id, this.currentTerm, voteResponsePayload);
+            Message voteResponseMessage = new Message(this.id, this.currentTerm, voteResponsePayload);
+            appendMessageEntries(voteResponseMessage);
+            return voteResponseMessage;
         });
     }
 
@@ -201,7 +246,7 @@ public class NodeServer extends DefaultNodeServer {
             synchronized (this) {
                 // If not in a candidate role, ignore the response
                 if (this.currentRole != Role.CANDIDATE) {
-                    log.debug("Ignoring vote response because the current role is not a candidate.");
+                    log.debug("Ignoring vote response because the current role is not a candidate. Node Id: {}", id);
                     return;
                 }
 
@@ -214,8 +259,8 @@ public class NodeServer extends DefaultNodeServer {
                 }
 
                 // Check if received majority of votes
-                if (votesReceived > getMajorityThreshold()) {
-                    log.info("Received majority of votes. Transitioning to leader role.");
+                if (votesReceived >= getMajorityThreshold()) {
+                    log.info("Received majority of votes. Transitioning to leader role. Node Id: {}", id);
                     transitionToLeader();
                     return;
                 }
@@ -223,15 +268,12 @@ public class NodeServer extends DefaultNodeServer {
                 // If the majority cannot be reached even with the remaining nodes, revert to follower
                 int remainingResponses = getTotalNodes() - (votesReceived + (getTotalNodes() - getMajorityThreshold()));
                 if (votesReceived + remainingResponses <= getMajorityThreshold()) {
-                    log.info("Majority votes cannot be achieved with the remaining responses. Reverting to follower role.");
+                    log.info("Majority votes cannot be achieved with the remaining responses. Reverting to follower role. Node Id: {}", id);
                     revertToFollower();
                 }
+                appendMessageEntries(message);
             }
         });
-    }
-
-    public String getCurrentLeader() {
-        return currentLeader;
     }
 
     private boolean isLogUpToDate(int lastLogIndex, Term lastLogTerm) {
@@ -329,11 +371,11 @@ public class NodeServer extends DefaultNodeServer {
 
     private int getTotalNodes() {
         // Assuming the size of 'sentLength' represents the total nodes
-        return sentLength.size();
+        return nodes.size();
     }
 
     private int getMajorityThreshold() {
-        return getTotalNodes() / 2 + 1;
+        return getTotalNodes() / 2;
     }
 
     private void transitionToLeader() {
@@ -342,6 +384,7 @@ public class NodeServer extends DefaultNodeServer {
         // Reset the votesReceived for future elections
         this.votesReceived = 0;
         // Additional tasks to initiate as leader
+        log.debug("Leader is selected. Leader Id: {}", id);
     }
 
     private void revertToFollower() {
@@ -410,5 +453,9 @@ public class NodeServer extends DefaultNodeServer {
                 }
             }
         });
+    }
+
+    private void appendMessageEntries(Message message) {
+        logs.add(new LogEntry(message.getTerm(), message));
     }
 }

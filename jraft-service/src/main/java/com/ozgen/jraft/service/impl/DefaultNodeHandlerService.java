@@ -1,9 +1,9 @@
 package com.ozgen.jraft.service.impl;
 
 import com.google.inject.Singleton;
-import com.ozgen.jraft.NodeServer;
 import com.ozgen.jraft.model.node.Node;
 import com.ozgen.jraft.model.node.NodeResponse;
+import com.ozgen.jraft.node.NodeServer;
 import com.ozgen.jraft.service.NodeHandlerService;
 
 import java.util.concurrent.CompletableFuture;
@@ -11,9 +11,10 @@ import java.util.concurrent.CompletableFuture;
 @Singleton
 public class DefaultNodeHandlerService implements NodeHandlerService {
 
-    private final NodeServer nodeServer;
+    private NodeServer nodeServer;
 
-    public DefaultNodeHandlerService(NodeServer nodeServer) {
+    @Override
+    public void setNodeServer(NodeServer nodeServer) {
         this.nodeServer = nodeServer;
     }
 

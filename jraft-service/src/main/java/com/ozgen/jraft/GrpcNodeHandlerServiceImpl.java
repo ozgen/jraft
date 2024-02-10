@@ -1,8 +1,10 @@
 package com.ozgen.jraft;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.ozgen.jraft.converter.GrpcToMsgConverter;
 import com.ozgen.jraft.converter.MsgToGrpcConverter;
+import com.ozgen.jraft.node.NodeServer;
 import com.ozgen.jraft.service.NodeHandlerService;
 import io.grpc.stub.StreamObserver;
 import jraft.Node;
@@ -18,6 +20,7 @@ public class GrpcNodeHandlerServiceImpl extends NodeServiceGrpc.NodeServiceImplB
     private final MsgToGrpcConverter msgToGrpcConverter;
     private final NodeHandlerService nodeHandlerService;
 
+    @Inject
     public GrpcNodeHandlerServiceImpl(GrpcToMsgConverter grpcToMsgConverter, MsgToGrpcConverter msgToGrpcConverter, NodeHandlerService nodeHandlerService) {
         this.grpcToMsgConverter = grpcToMsgConverter;
         this.msgToGrpcConverter = msgToGrpcConverter;
@@ -65,5 +68,9 @@ public class GrpcNodeHandlerServiceImpl extends NodeServiceGrpc.NodeServiceImplB
             log.error("Exception in leaveCluster()", e);
             responseObserver.onError(e);
         }
+    }
+
+    public void setNodeServer(NodeServer nodeServer) {
+        this.nodeHandlerService.setNodeServer(nodeServer);
     }
 }
