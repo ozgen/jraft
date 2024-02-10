@@ -3,8 +3,6 @@ package com.ozgen.jraft;
 import com.google.inject.AbstractModule;
 import com.ozgen.jraft.converter.GrpcToMsgConverter;
 import com.ozgen.jraft.converter.MsgToGrpcConverter;
-import com.ozgen.jraft.service.MessageHandlerService;
-import com.ozgen.jraft.service.impl.MessageHandlerServiceImpl;
 
 public class JRaftLibModule extends AbstractModule {
 
@@ -15,6 +13,6 @@ public class JRaftLibModule extends AbstractModule {
         bind(MsgToGrpcConverter.class).asEagerSingleton();
 
         // Bind service implementation to its interface
-        bind(MessageHandlerService.class).to(MessageHandlerServiceImpl.class).asEagerSingleton();
+//        bind(MessageHandlerService.class).to(MessageHandlerServiceImpl.class).asEagerSingleton();
     }
 }

@@ -21,9 +21,11 @@ public class MsgToGrpcConverter {
     public Message.MessageWrapper convert(com.ozgen.jraft.model.message.Message customMessage) {
         Message.MessageWrapper.Builder grpcMessageWrapperBuilder = Message.MessageWrapper.newBuilder();
 
-        grpcMessageWrapperBuilder.setSender(customMessage.getSender());
+        grpcMessageWrapperBuilder.setSender(customMessage.getSender().toString());
+        Timestamp timestamp = instantToTimestamp(customMessage.getTerm().getCreatedAt());
         grpcMessageWrapperBuilder.setTerm(Message.Term.newBuilder()
                 .setTerm(customMessage.getTerm().getNumber())
+                .setCreatedAt(timestamp)
                 .build());
 
         Object payload = customMessage.getPayload();
@@ -49,21 +51,21 @@ public class MsgToGrpcConverter {
         return Timestamp.newBuilder().setSeconds(instant.getEpochSecond()).setNanos(instant.getNano()).build();
     }
 
-    public Node.JoinRequest convertJoinRequest(com.ozgen.jraft.model.node.Node node){
+    public Node.JoinRequest convertJoinRequest(com.ozgen.jraft.model.node.Node node) {
         return Node.JoinRequest.newBuilder()
                 .setNodeId(node.getId())
                 .setNodeData(this.convertNodeData(node.getNodeData()))
                 .build();
     }
 
-    public Node.NodeResponse convertNodeResponse(com.ozgen.jraft.model.node.NodeResponse nodeResponse){
+    public Node.NodeResponse convertNodeResponse(com.ozgen.jraft.model.node.NodeResponse nodeResponse) {
         return Node.NodeResponse.newBuilder()
                 .setSuccess(nodeResponse.isSuccess())
                 .setMessage(nodeResponse.getMessage())
                 .build();
     }
 
-    public Node.LeaveRequest convertLeaveRequest(String nodeId){
+    public Node.LeaveRequest convertLeaveRequest(String nodeId) {
         return Node.LeaveRequest.newBuilder()
                 .setNodeId(nodeId)
                 .build();
@@ -143,8 +145,8 @@ public class MsgToGrpcConverter {
         return grpcMessageWrapperBuilder.build();
     }
 
-    private Node.NodeData convertNodeData(NodeData nodeData){
-      return   Node.NodeData.newBuilder()
+    private Node.NodeData convertNodeData(NodeData nodeData) {
+        return Node.NodeData.newBuilder()
                 .setIpAddress(nodeData.getIpAddress())
                 .setPort(nodeData.getPort())
                 .build();

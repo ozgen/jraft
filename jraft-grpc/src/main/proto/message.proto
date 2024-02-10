@@ -3,12 +3,13 @@ syntax = "proto3";
 package com.jraft;
 
 //import "google/protobuf/empty.proto";
-//import "google/protobuf/timestamp.proto";
+import "google/protobuf/timestamp.proto";
 
 // Message definitions
 
 message Term {
   int32 term = 1;
+  google.protobuf.Timestamp created_at=2;
 }
 
 message LogEntry {

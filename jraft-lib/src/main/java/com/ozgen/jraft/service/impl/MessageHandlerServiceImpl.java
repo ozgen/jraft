@@ -33,6 +33,7 @@ public class MessageHandlerServiceImpl implements MessageHandlerService {
     // and return null
     @Override
     public CompletableFuture<Message> handleVoteRequest(Message message) {
+
         return null;
     }
 

@@ -1,14 +1,23 @@
 package com.ozgen.jraft.model.message;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Objects;
 
 public class Term implements Serializable, Comparable<Term> {
 
     private final int number;
 
+    private final Instant createdAt;
+
     public Term(int number) {
         this.number = number;
+        this.createdAt = Instant.now();
+    }
+
+    public Term(int number, Instant createdAt) {
+        this.number = number;
+        this.createdAt = createdAt;
     }
 
     public boolean isLessThan(Term otherTerm) {
@@ -17,6 +26,9 @@ public class Term implements Serializable, Comparable<Term> {
 
     public boolean isGreaterThan(Term otherTerm) {
         return compareTo(otherTerm) > 0;
+    }
+    public boolean isCreatedEarlierThan(Term otherTerm) {
+        return createdAt.isBefore(otherTerm.createdAt);
     }
 
     public Term next() {
@@ -42,6 +54,10 @@ public class Term implements Serializable, Comparable<Term> {
 
     public int getNumber() {
         return number;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 
     @Override

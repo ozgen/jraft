@@ -7,6 +7,7 @@ import com.ozgen.jraft.model.message.Term;
 import com.ozgen.jraft.model.message.payload.VoteRequestPayload;
 import com.ozgen.jraft.model.message.payload.impl.LogRequestPayloadData;
 import com.ozgen.jraft.model.message.payload.impl.VoteRequestPayloadData;
+import com.ozgen.jraft.model.message.payload.impl.VoteResponsePayloadData;
 import com.ozgen.jraft.model.node.Node;
 import com.ozgen.jraft.model.node.NodeData;
 import com.ozgen.jraft.model.node.NodeResponse;
@@ -18,15 +19,17 @@ public class GrpcToMsgConverter {
 
     // Convert gRPC MessageWrapper to custom message
     public com.ozgen.jraft.model.message.Message convertMessage(Message.MessageWrapper grpcMessageWrapper) {
-        String sender = grpcMessageWrapper.getSender();
-        Term term = new Term(grpcMessageWrapper.getTerm().getTerm());
+        String sender = grpcMessageWrapper.getSender().toString();
+        Instant instant = timestampToInstant(grpcMessageWrapper.getTerm().getCreatedAt());
+        Term term = new Term(grpcMessageWrapper.getTerm().getTerm(), instant);
 
         if (grpcMessageWrapper.hasVoteRequest()) {
             VoteRequestPayload voteRequestPayload = this.convertVoteRequest(grpcMessageWrapper.getVoteRequest());
             return new com.ozgen.jraft.model.message.Message(sender, term, voteRequestPayload);
         } else if (grpcMessageWrapper.hasVoteResponse()) {
             Message.VoteResponse voteResponse = grpcMessageWrapper.getVoteResponse();
-            return new com.ozgen.jraft.model.message.Message(sender, term, voteResponse);
+            VoteResponsePayloadData voteResponsePayloadData = new VoteResponsePayloadData(voteResponse.getGranted());
+            return new com.ozgen.jraft.model.message.Message(sender, term, voteResponsePayloadData);
         } else if (grpcMessageWrapper.hasLogRequest()) {
             LogRequestPayloadData logRequestPayloadData = this.convertLogRequest(grpcMessageWrapper.getLogRequest());
             return new com.ozgen.jraft.model.message.Message(sender, term, logRequestPayloadData);

@@ -6,6 +6,11 @@
         </encoder>
     </appender>
 
+    <logger name="io.grpc.netty.shaded.io.grpc.netty" level="info">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="CLOUD" />
+    </logger>
+
     <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>

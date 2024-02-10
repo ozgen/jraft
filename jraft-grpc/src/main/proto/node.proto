@@ -2,13 +2,6 @@ syntax = "proto3";
 
 package jraft;
 
-// Service definition
-service NodeService {
-  // RPC methods
-  rpc joinCluster(JoinRequest) returns (NodeResponse);
-  rpc leaveCluster(LeaveRequest) returns (NodeResponse);
-}
-
 // Message definitions
 
 message JoinRequest {
@@ -28,4 +21,11 @@ message NodeData {
 message NodeResponse {
   bool success = 1;
   string message = 2;
+}
+
+// Service definition
+service NodeService {
+  // RPC methods
+  rpc joinCluster(JoinRequest) returns (NodeResponse);
+  rpc leaveCluster(LeaveRequest) returns (NodeResponse);
 }
