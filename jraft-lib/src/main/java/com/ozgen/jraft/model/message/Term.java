@@ -27,6 +27,7 @@ public class Term implements Serializable, Comparable<Term> {
     public boolean isGreaterThan(Term otherTerm) {
         return compareTo(otherTerm) > 0;
     }
+
     public boolean isCreatedEarlierThan(Term otherTerm) {
         return createdAt.isBefore(otherTerm.createdAt);
     }
@@ -67,5 +68,13 @@ public class Term implements Serializable, Comparable<Term> {
 
     public boolean equalsOrGreaterThan(Term otherTerm) {
         return compareTo(otherTerm) >= 0;
+    }
+
+    @Override
+    public String toString() {
+        return "Term{" +
+                "number=" + number +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }

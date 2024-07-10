@@ -25,21 +25,23 @@ public class JraftServerMain {
     private static NodeData NODE_5 = new NodeData("127.0.0.1", 8084);
 
     public static void main(String[] args) throws InterruptedException {
-        ExecutorService executorService = Executors.newFixedThreadPool(10); // for 4 servers
+        ExecutorService executorService = Executors.newFixedThreadPool(10); // for 5 servers
 
         ConcurrentHashMap<String, NodeData> cluster = new ConcurrentHashMap<>();
         cluster.put(NODE_ID_1, NODE_1);
         cluster.put(NODE_ID_2, NODE_2);
         cluster.put(NODE_ID_3, NODE_3);
         cluster.put(NODE_ID_4, NODE_4);
+        cluster.put(NODE_ID_5, NODE_5);
 
 
         executorService.execute(() -> startServer(8081, NODE_ID_2, cluster));
         executorService.execute(() -> startServer(8082, NODE_ID_3, cluster));
         executorService.execute(() -> startServer(8080, NODE_ID_1, cluster));
         executorService.execute(() -> startServer(8083, NODE_ID_4, cluster));
+        executorService.execute(() -> startServer(8084, NODE_ID_5, cluster));
 
-        executorService.shutdown(); // I
+        executorService.shutdown();
     }
 
     private static void startServer(int port, String nodeId, ConcurrentHashMap<String, NodeData> cluster) {

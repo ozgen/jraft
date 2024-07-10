@@ -19,7 +19,7 @@ public class GrpcToMsgConverter {
 
     // Convert gRPC MessageWrapper to custom message
     public com.ozgen.jraft.model.message.Message convertMessage(Message.MessageWrapper grpcMessageWrapper) {
-        String sender = grpcMessageWrapper.getSender().toString();
+        String sender = grpcMessageWrapper.getSender();
         Instant instant = timestampToInstant(grpcMessageWrapper.getTerm().getCreatedAt());
         Term term = new Term(grpcMessageWrapper.getTerm().getTerm(), instant);
 
