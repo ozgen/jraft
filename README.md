@@ -2,7 +2,7 @@
 
 ## Technologies Used
 
-- Java 17
+- Java 21
 - Maven
 
 ## Raft Consensus Algorithm
