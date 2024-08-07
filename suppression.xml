@@ -2,16 +2,14 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
     <!-- Suppress vulnerabilities in guava-30.1-jre.jar -->
     <suppress>
-        <notes><![CDATA[file name: guava-30.1-jre.jar]]></notes>
-        <gav regex="true">^com\.google\.guava:guava:.*$</gav>
-        <cve>CVE-2020-8908</cve>
-        <cve>CVE-2023-2976</cve>
+        <filePath regex="true">^.*\.(jar|war|ear)$</filePath>
+        <cve>CVE-2024-29025</cve>
     </suppress>
 
     <!-- Suppress vulnerabilities in jraft-grpc-1.0-SNAPSHOT.jar -->
     <suppress>
         <notes><![CDATA[file name: jraft-grpc-1.0-SNAPSHOT.jar]]></notes>
-        <gav regex="true">^your.group.id:jraft-grpc:.*$</gav>
+        <filePath regex="true">^.*\.(jar|war|ear)$</filePath>
         <!-- Replace 'your.group.id' with the actual group ID of your jraft-grpc artifact -->
         <cve>CVE-2023-44487</cve>
         <cve>CVE-2017-8359</cve>

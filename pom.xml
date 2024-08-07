@@ -17,7 +17,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <grpc.version>1.59.0</grpc.version>
+        <grpc.version>1.65.1</grpc.version>
         <protobuf.version>3.24.4</protobuf.version>
         <guice.version>5.0.1</guice.version>
     </properties>
@@ -28,7 +28,7 @@
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>1.2.9</version>
+                <version>1.2.13</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -54,6 +54,11 @@
                 <groupId>com.google.inject</groupId>
                 <artifactId>guice</artifactId>
                 <version>${guice.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>33.2.1-jre</version>
             </dependency>
             <dependency>
                 <groupId>javax.inject</groupId>
