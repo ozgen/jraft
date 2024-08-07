@@ -48,7 +48,6 @@ public class GrpcNodeHandlerServiceImpl extends NodeServiceGrpc.NodeServiceImplB
         }
     }
 
-
     @Override
     public void leaveCluster(Node.LeaveRequest request, StreamObserver<Node.NodeResponse> responseObserver) {
         try {
